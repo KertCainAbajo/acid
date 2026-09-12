@@ -1,0 +1,62 @@
+@extends('layouts.app')
+
+@section('content')
+<div class="shell">
+    <header class="topbar">
+        <a class="brand" href="{{ route('dashboard') }}"><img class="brand-logo" src="{{ asset('images/logo1.png') }}" alt="RefluxCare logo"><span>RefluxCare<small>CLINICAL PLATFORM</small></span></a>
+        <div class="top-actions"><span class="pill active">Patient Portal</span><span class="pill">⌕ Search your logs</span><span class="pill">Today, {{ now()->format('M d') }}</span><span class="avatar">{{ strtoupper(substr($user->name, 0, 1)) }}</span><form method="POST" action="{{ route('logout') }}">@csrf<button class="pill" style="cursor:pointer">Log out</button></form></div>
+    </header>
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="side-label">Patient module</div>
+            <a class="side-link current" href="{{ route('dashboard') }}"><span>◉</span><span>Dashboard</span></a>
+            <a class="side-link" href="{{ route('food.log') }}"><span>🍴</span><span>Food Intake Logger</span></a>
+            <a class="side-link" href="{{ route('symptom.log') }}"><span>⌁</span><span>Symptom Tracker</span></a>
+            <a class="side-link" href="{{ route('sleep.log') }}"><span>☾</span><span>Sleep &amp; Stress</span></a>
+            <a class="side-link" href="#insights"><span>✣</span><span>AI Pattern Insights</span></a>
+            <a class="side-link" href="#recommendations"><span>♧</span><span>Food Recommendations</span></a>
+            <a class="side-link" href="#history"><span>▣</span><span>Health History / Profile</span></a>
+            <div class="side-label">Admin module</div>
+            <a class="side-link" href="#"><span>⌁</span><span>Analytics Overview</span></a>
+            <a class="side-link" href="#"><span>⚒</span><span>Category &amp; Trigger Rules</span></a>
+            <a class="side-link" href="#"><span>♧</span><span>Cohort Management</span></a>
+        </aside>
+        <main class="main">
+            <section class="welcome">
+                <div><div class="eyebrow"><span class="dot"></span> LIVE HEALTH TIMELINE · UPDATED JUST NOW</div><h1>Welcome back, <span style="color:var(--green)">{{ explode(' ', trim($user->name))[0] }}</span></h1><span class="status">✦ Esophagus state: <strong>Calm tracking day</strong> · {{ ucfirst($latestInsight->risk_level) }} risk</span><p class="subtle" style="margin:10px 0 0;font-size:12px">Keep logging consistently to make your weekly patterns more reliable.</p></div>
+                <div class="quick-actions"><a class="quick" href="{{ route('food.log') }}">🍴<br>Log<br>Food</a><a class="quick red" href="{{ route('symptom.log') }}">⌁<br>Log<br>Reflux</a><a class="quick blue" href="{{ route('sleep.log') }}">☾<br>Sleep<br>&amp; Stress</a></div>
+            </section>
+
+            <section class="cards">
+                <article class="card"><div class="card-head"><span>◉ Acid-Risk Index</span><span>ⓘ</span></div><div class="metric green">{{ ucfirst($latestInsight->risk_level) }} <small>risk</small></div><p class="subtle" style="font-size:12px">Based on your recent symptom, food, sleep and stress patterns.</p><span class="tag">✦ Weekly insight ready</span></article>
+                <article class="card"><div class="card-head"><span>⚒ Today's Intake</span><span class="tag" style="margin:0">On track</span></div><div class="metric">{{ $todayFoodCount }} <small>food entr{{ $todayFoodCount === 1 ? 'y' : 'ies' }}</small></div><p class="subtle" style="font-size:12px">Keep meals and notes consistent for better trigger matching.</p><span class="tag">◉ {{ $todayFoodCount ? 'Logging started' : 'No meals logged yet' }}</span></article>
+                <article class="card"><div class="card-head"><span>♡ Symptom Activity</span><span style="color:var(--green)">●</span></div><div class="metric {{ $todaySymptomCount ? 'red' : 'green' }}">{{ $todaySymptomCount ? $todaySymptomCount.' logged' : 'No acute reflux' }}</div><p class="subtle" style="font-size:12px">{{ $todaySymptomCount ? 'Review the latest symptom entry below.' : 'No symptoms logged today.' }}</p><span class="tag {{ $todaySymptomCount ? 'alert' : '' }}">{{ $todaySymptomCount ? 'Monitor your pattern' : 'Quiet tracking day' }}</span></article>
+                <article class="card"><div class="card-head"><span>☾ Sleep &amp; Stress</span><span style="color:var(--green)">{{ $sleep ? 'Latest' : 'Add data' }}</span></div><div class="metric">{{ $sleep ? number_format($sleep->sleep_hours, 1).' hrs' : '—' }}</div><div class="progress"><i style="width:{{ $sleep ? min(100, $sleep->sleep_hours / 8 * 100) : 0 }}%"></i></div><p class="subtle" style="font-size:12px">{{ $sleep ? 'Stress '.$sleep->stress_level.'/10 · Quality '.$sleep->sleep_quality.'/5' : 'Sleep data improves your risk estimate.' }}</p></article>
+            </section>
+
+            <div class="two-col">
+                <div>
+                    <section class="insight" id="insights"><div class="eyebrow">✦ AI PATTERN INSIGHT <span class="pill" style="padding:4px 9px;font-size:10px">{{ ucfirst($latestInsight->risk_level) }} risk</span></div><h2>{{ $latestInsight->risk_level === 'low' ? 'Your recent pattern looks stable.' : 'Your recent pattern deserves attention.' }}</h2><p class="subtle">{{ $latestInsight->insight_text }}</p><div class="recommendation"><div><strong>Recommended next step</strong><div class="subtle" style="font-size:12px">Log your next meal or symptom while it is fresh.</div></div><a class="btn" href="{{ route('food.log') }}">Add a log</a></div></section>
+                    <section class="card" style="margin-top:18px" id="history"><div class="section-title"><div><h2>Recent health timeline</h2><div class="subtle">Your latest food and symptom records</div></div><a class="btn secondary" href="{{ route('dashboard') }}">Refresh</a></div><div class="timeline">@forelse($timeline as $event)<div class="timeline-row"><div class="timeline-time">{{ $event['at']->diffForHumans() }}</div><div class="timeline-line {{ $event['tone'] === 'alert' ? 'alert' : '' }}"></div><div class="timeline-copy"><strong>{{ $event['kind'] === 'food' ? 'Food · ' : 'Symptom · ' }}{{ $event['title'] }}</strong><span class="subtle" style="font-size:12px">{{ $event['meta'] }}</span></div></div>@empty<div class="subtle">Your timeline will appear here as you log data.</div>@endforelse</div></section>
+                </div>
+                <div>
+                    <section class="card chart"><div class="section-title"><div><h2>Weekly correlation</h2><div class="subtle">Symptoms vs. food logging</div></div><span class="tag">{{ $symptoms->count() }} symptoms</span></div><div class="bars"><i class="bar" style="height:35%"></i><i class="bar alert" style="height:76%"></i><i class="bar" style="height:28%"></i><i class="bar" style="height:48%"></i><i class="bar" style="height:66%"></i><i class="bar" style="height:52%"></i><i class="bar" style="height:72%"></i></div><div class="subtle">Weekly average severity: <strong style="color:var(--ink)">{{ $symptoms->count() ? number_format($symptoms->avg('intensity'), 1) : '0.0' }}/10</strong></div></section>
+                    <section class="card" style="margin-top:18px" id="recommendations"><div class="section-title"><div><h2>Dominant triggers</h2><div class="subtle">Based on your last 30 days</div></div></div><div class="trigger-list">@forelse($triggers as $trigger)<div class="trigger"><div><strong>{{ $trigger['food'] }}</strong><span class="subtle" style="font-size:12px">{{ $trigger['count'] }} related symptom{{ $trigger['count'] === 1 ? '' : 's' }}</span></div><span class="match">Review</span></div>@empty<div class="subtle">No consistent trigger identified yet.</div>@endforelse</div></section>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<div id="logger" style="display:none;position:fixed;inset:0;z-index:10;background:#102c3566;padding:30px"><div class="auth-card" style="max-width:480px;margin:8vh auto"><div class="section-title"><h2 id="logger-title">Add a log</h2><button class="pill" onclick="closeLogger()">Close</button></div><form id="logger-form"><div id="logger-fields"></div><button class="btn" type="submit">Save log</button></form><p id="logger-result" class="subtle" style="margin:12px 0 0"></p></div></div>
+<script>
+    window.refluxApiToken = @json(session('api_token'));
+    const logger = document.getElementById('logger');
+    const fields = document.getElementById('logger-fields');
+    const result = document.getElementById('logger-result');
+    let loggerType = 'food';
+    function openLogger(type) { loggerType = type; result.textContent = ''; logger.style.display = 'block'; const now = new Date().toISOString().slice(0,16); if (type === 'food') { document.getElementById('logger-title').textContent = 'Log food intake'; fields.innerHTML = `<div class="field"><label>Food name</label><input name="food_name" required placeholder="e.g. oatmeal"></div><div class="field"><label>Category</label><select name="category" style="width:100%;padding:13px;border:1px solid #dce8e8;border-radius:11px"><option value="acidic">Acidic</option><option value="oily">Oily</option><option value="spicy">Spicy</option><option value="dairy">Dairy</option></select></div><div class="field"><label>Time</label><input type="datetime-local" name="time" value="${now}" required></div><div class="field"><label>Notes</label><input name="notes" placeholder="Optional notes"></div>`; } else if (type === 'symptom') { document.getElementById('logger-title').textContent = 'Log reflux symptom'; fields.innerHTML = `<div class="field"><label>Symptom</label><select name="symptom_type" style="width:100%;padding:13px;border:1px solid #dce8e8;border-radius:11px"><option value="heartburn">Heartburn</option><option value="bloating">Bloating</option><option value="pain">Pain</option></select></div><div class="field"><label>Intensity (1–10)</label><input type="number" min="1" max="10" name="intensity" value="5" required></div><div class="field"><label>Time</label><input type="datetime-local" name="time" value="${now}" required></div><div class="field"><label>Notes</label><input name="notes" placeholder="What happened?"></div>`; } else { document.getElementById('logger-title').textContent = 'Log sleep & stress'; fields.innerHTML = `<div class="field"><label>Sleep hours</label><input type="number" step="0.1" min="0" max="24" name="sleep_hours" value="7" required></div><div class="field"><label>Sleep quality (1–5)</label><input type="number" min="1" max="5" name="sleep_quality" value="4" required></div><div class="field"><label>Stress level (1–10)</label><input type="number" min="1" max="10" name="stress_level" value="3" required></div><div class="field"><label>Date</label><input type="date" name="logged_on" value="${new Date().toISOString().slice(0,10)}" required></div><div class="field"><label>Notes</label><input name="notes" placeholder="Optional notes"></div>`; } }
+    function closeLogger() { logger.style.display = 'none'; }
+    document.getElementById('logger-form').addEventListener('submit', async (event) => { event.preventDefault(); const data = Object.fromEntries(new FormData(event.target).entries()); if (data.time) data.time = new Date(data.time).toISOString(); result.textContent = 'Saving…'; const endpoint = loggerType === 'food' ? 'food-log' : (loggerType === 'symptom' ? 'symptom-log' : 'sleep-log'); try { const response = await fetch(`/api/${endpoint}`, { method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json','Authorization':`Bearer ${window.refluxApiToken}`}, body:JSON.stringify(data) }); const payload = await response.json(); if (!response.ok) throw new Error(payload.message || 'Please check the fields and try again.'); result.textContent = 'Saved. Refreshing your dashboard…'; setTimeout(() => window.location.reload(), 650); } catch (error) { result.textContent = error.message; } });
+</script>
+@endsection

@@ -105,4 +105,18 @@ class AcidRefluxApiTest extends TestCase
             ->assertSee('Dashboard')
             ->assertSee('AI Pattern Insight');
     }
+
+    public function test_authenticated_patient_can_open_each_patient_workspace_section(): void
+    {
+        $patient = User::factory()->create(['name' => 'Section Patient']);
+
+        $this->actingAs($patient);
+
+        $this->get('/food-log')->assertOk()->assertSee('Food Intake Logger');
+        $this->get('/symptom-log')->assertOk()->assertSee('Symptom Tracker');
+        $this->get('/sleep-stress')->assertOk()->assertSee('Sleep & Stress');
+        $this->get('/insights')->assertOk()->assertSee('AI Pattern Insights');
+        $this->get('/recommendations')->assertOk()->assertSee('Food Recommendations');
+        $this->get('/health-history')->assertOk()->assertSee('Health History &amp; Profile', false);
+    }
 }

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LogPageController;
+use App\Http\Controllers\PatientSectionController;
 use App\Http\Controllers\WebAuthController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -19,5 +20,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/food-log', [LogPageController::class, 'food'])->name('food.log');
     Route::get('/symptom-log', [LogPageController::class, 'symptom'])->name('symptom.log');
     Route::get('/sleep-stress', [LogPageController::class, 'sleep'])->name('sleep.log');
+    Route::get('/insights', [PatientSectionController::class, 'insights'])->name('insights');
+    Route::get('/recommendations', [PatientSectionController::class, 'recommendations'])->name('recommendations');
+    Route::get('/health-history', [PatientSectionController::class, 'history'])->name('history');
     Route::post('/logout', [WebAuthController::class, 'logout'])->name('logout');
 });

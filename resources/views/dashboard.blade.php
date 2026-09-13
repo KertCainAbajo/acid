@@ -7,24 +7,11 @@
         <div class="top-actions"><span class="pill active">Patient Portal</span><span class="pill">⌕ Search your logs</span><span class="pill">Today, {{ now()->format('M d') }}</span><span class="avatar">{{ strtoupper(substr($user->name, 0, 1)) }}</span><form method="POST" action="{{ route('logout') }}">@csrf<button class="pill" style="cursor:pointer">Log out</button></form></div>
     </header>
     <div class="layout">
-        <aside class="sidebar">
-            <div class="side-label">Patient module</div>
-            <a class="side-link current" href="{{ route('dashboard') }}"><span>◉</span><span>Dashboard</span></a>
-            <a class="side-link" href="{{ route('food.log') }}"><span>🍴</span><span>Food Intake Logger</span></a>
-            <a class="side-link" href="{{ route('symptom.log') }}"><span>⌁</span><span>Symptom Tracker</span></a>
-            <a class="side-link" href="{{ route('sleep.log') }}"><span>☾</span><span>Sleep &amp; Stress</span></a>
-            <a class="side-link" href="#insights"><span>✣</span><span>AI Pattern Insights</span></a>
-            <a class="side-link" href="#recommendations"><span>♧</span><span>Food Recommendations</span></a>
-            <a class="side-link" href="#history"><span>▣</span><span>Health History / Profile</span></a>
-            <div class="side-label">Admin module</div>
-            <a class="side-link" href="#"><span>⌁</span><span>Analytics Overview</span></a>
-            <a class="side-link" href="#"><span>⚒</span><span>Category &amp; Trigger Rules</span></a>
-            <a class="side-link" href="#"><span>♧</span><span>Cohort Management</span></a>
-        </aside>
+        @include('partials.sidebar', ['activeSection' => 'dashboard'])
         <main class="main">
             <section class="welcome">
                 <div><div class="eyebrow"><span class="dot"></span> LIVE HEALTH TIMELINE · UPDATED JUST NOW</div><h1>Welcome back, <span style="color:var(--green)">{{ explode(' ', trim($user->name))[0] }}</span></h1><span class="status">✦ Esophagus state: <strong>Calm tracking day</strong> · {{ ucfirst($latestInsight->risk_level) }} risk</span><p class="subtle" style="margin:10px 0 0;font-size:12px">Keep logging consistently to make your weekly patterns more reliable.</p></div>
-                <div class="quick-actions"><a class="quick" href="{{ route('food.log') }}">🍴<br>Log<br>Food</a><a class="quick red" href="{{ route('symptom.log') }}">⌁<br>Log<br>Reflux</a><a class="quick blue" href="{{ route('sleep.log') }}">☾<br>Sleep<br>&amp; Stress</a></div>
+                <div class="quick-actions"><a class="quick" href="{{ route('food.log') }}"><span class="quick-icon">🍴</span><span>Log Food</span></a><a class="quick red" href="{{ route('symptom.log') }}"><span class="quick-icon">⌁</span><span>Log Reflux</span></a><a class="quick blue" href="{{ route('sleep.log') }}"><span class="quick-icon">☾</span><span>Sleep &amp; Stress</span></a></div>
             </section>
 
             <section class="cards">

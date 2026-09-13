@@ -22,11 +22,13 @@
     .log-intro h1 { max-width:480px; margin:18px 0 12px; font-size:clamp(34px,4vw,54px); line-height:1.02; letter-spacing:-.06em; }
     .log-intro > p { max-width:490px; color:#637880; font-size:15px; line-height:1.65; }
     .log-steps { display:grid; gap:12px; margin-top:30px; }
-    .log-step { display:flex; align-items:flex-start; gap:14px; max-width:520px; padding:17px 18px; border:1px solid #d8eee5; border-radius:20px; background:#fff; box-shadow:0 18px 38px #174b3814,0 3px 8px #174b3808; }
+    .log-step { display:flex; align-items:flex-start; gap:14px; max-width:520px; padding:17px 18px; border:1px solid #d8eee5; border-radius:20px; background:#fff; box-shadow:0 18px 38px #174b3814,0 3px 8px #174b3808; transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease; }
+    .log-step:hover { transform:translateX(5px); border-color:#b8e2d2; box-shadow:0 22px 42px #174b381b,0 3px 8px #174b3808; }
     .log-step b { display:grid; place-items:center; flex:none; width:25px; height:25px; border-radius:50%; color:#fff; background:var(--green); font-size:11px; }
     .log-step strong { display:block; margin-bottom:2px; color:#173e47; font-size:12px; }
     .log-step small { color:#70868b; font-size:11px; }
-    .log-card { padding:clamp(30px,3vw,44px); border:1px solid #d4ebe1; border-radius:32px; background:#fff; box-shadow:0 30px 80px #174b3820,0 5px 16px #174b380d; }
+    .log-card { padding:clamp(30px,3vw,44px); border:1px solid #d4ebe1; border-radius:32px; background:#fff; box-shadow:0 30px 80px #174b3820,0 5px 16px #174b380d; transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease; }
+    .log-card:hover { border-color:#b9e2d2; box-shadow:0 34px 88px #174b3826,0 7px 20px #174b3810; }
     .log-card-header { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:24px; }
     .log-card h2 { margin:0 0 5px; font-size:24px; letter-spacing:-.04em; }
     .log-card-header p { margin:0; color:#70868b; font-size:12px; }
@@ -47,13 +49,50 @@
     .recent-logs { margin-top:18px; padding-top:20px; border-top:1px solid #e4efec; }
     .recent-logs h3 { margin:0 0 11px; color:#173e47; font-size:15px; letter-spacing:-.02em; }
     .recent-log-list { display:grid; gap:8px; }
-    .recent-log { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:13px 15px; border:1px solid #e0efea; border-radius:17px; background:#fbfefd; box-shadow:0 8px 18px #174b3808; }
+    .recent-log { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:13px 15px; border:1px solid #e0efea; border-radius:17px; background:#fbfefd; box-shadow:0 8px 18px #174b3808; transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease; }
+    .recent-log:hover { transform:translateY(-2px); border-color:#bfe5d6; box-shadow:0 12px 22px #174b3812; }
     .recent-log strong { display:block; color:#173e47; font-size:12px; }
     .recent-log small { display:block; margin-top:2px; color:#788b8d; font-size:10px; }
     .recent-log-badge { flex:none; padding:4px 7px; border-radius:999px; color:var(--green); background:#e1f8ee; font-size:9px; font-weight:800; }
+    .food-log-intro h1 { max-width:560px; font-size:clamp(40px,4vw,60px); }
+    .food-support { display:flex; align-items:flex-start; gap:12px; max-width:520px; margin-top:26px; padding:16px 18px; border:1px solid #bfeada; border-radius:20px; background:#ffffffc9; box-shadow:0 14px 32px #174b3810; }
+    .food-support-mark { display:grid; place-items:center; flex:none; width:30px; height:30px; border-radius:50%; color:#fff; background:#177b5c; font-size:15px; font-weight:800; }
+    .food-support strong { display:block; color:#173e47; font-size:14px; }
+    .food-support p { margin:3px 0 0; color:#597178; font-size:12px; line-height:1.5; }
+    .food-log-card { border-color:#c9eadc; }
+    .food-log-card .log-card-header { align-items:center; margin:0 0 25px; padding:18px 20px; border:1px solid #d8f0e5; border-radius:22px; background:linear-gradient(115deg,#effcf6,#fbfffd); }
+    .food-log-card .log-card-header h2 { margin-bottom:5px; font-size:clamp(25px,2.2vw,31px); }
+    .food-log-card .log-card-header p { font-size:14px; }
+    .food-log-card .log-icon { width:56px; height:56px; border-radius:19px; font-size:26px; }
+    .food-log-card .log-field label, .food-category-field legend { color:#173e47; font-size:14px; font-weight:800; }
+    .food-log-card .log-field input, .food-log-card .log-field select, .food-log-card .log-field textarea { min-height:56px; padding:15px 17px; border-radius:16px; font-size:16px; }
+    .food-log-card .log-field textarea { min-height:118px; line-height:1.5; }
+    .food-log-card .log-hint { margin-top:7px; font-size:11px; line-height:1.45; }
+    .food-category-select-field { margin:23px 0 20px; }
+    .food-category-select-field select { cursor:pointer; }
+    .food-time-field { margin-top:0; }
+    .food-log-card .log-submit { min-height:58px; margin-top:5px; border-radius:18px; font-size:16px; }
+    .food-log-card .recent-logs { margin-top:28px; padding:22px; border:1px solid #dcefe7; border-radius:22px; background:#fafffc; }
+    .food-log-card .recent-logs h3 { font-size:17px; }
+    .food-log-card .recent-log { min-height:64px; border-radius:16px; background:#fff; }
+    .food-log-card .recent-log strong { font-size:14px; }
+    .food-log-card .recent-log small { font-size:11px; }
+    .food-form-history { display:grid; grid-template-columns:minmax(0,1.18fr) minmax(285px,.82fr); gap:22px; align-items:start; }
+    .food-form-history > .log-card { min-width:0; height:auto; }
+    .food-history-card { padding:26px; }
+    .food-history-heading { display:flex; align-items:center; gap:12px; margin-bottom:22px; }
+    .food-history-heading-mark { display:grid; place-items:center; flex:none; width:42px; height:42px; border-radius:15px; color:#177b5c; background:#ddf8ee; font-size:20px; }
+    .food-history-heading h2 { margin:0 0 3px; font-size:22px; }
+    .food-history-heading p { margin:0; color:#70868b; font-size:11px; }
+    .food-history-card .recent-logs { margin:0; padding:0; border:0; background:transparent; }
+    .food-history-card .recent-logs h3 { margin-bottom:13px; color:#60787e; font-size:11px; letter-spacing:.05em; text-transform:uppercase; }
+    .food-history-card .recent-log-list { max-height:none; overflow:visible; padding-right:4px; }
+    .food-history-card .recent-log { min-height:72px; padding:13px; }
+    .food-history-card .recent-log-badge { font-size:9px; }
     @media (max-width:1100px) { .log-layout { grid-template-columns:minmax(300px,.8fr) minmax(500px,1.2fr); gap:34px; } }
-    @media (max-width:800px) { .log-screen { padding:24px 18px 40px; } .log-layout { grid-template-columns:1fr; gap:5px; } .log-intro { padding:10px 0 20px; } .log-intro h1 { font-size:42px; } .log-card { padding:22px; border-radius:24px; } }
-    @media (max-width:480px) { .log-two { grid-template-columns:1fr; gap:0; } }
+    @media (max-width:1200px) { .food-form-history { grid-template-columns:1fr; } .food-history-card .recent-log-list { max-height:none; } }
+    @media (max-width:800px) { .log-screen { padding:24px 18px 40px; } .log-layout { grid-template-columns:1fr; gap:5px; } .log-intro { padding:10px 0 20px; } .log-intro h1 { font-size:42px; } .log-card { padding:22px; border-radius:24px; } .food-log-card .log-card-header { padding:16px; } .food-log-card .recent-logs { padding:16px; } .food-history-card { padding:22px; } }
+    @media (max-width:480px) { .log-two { grid-template-columns:1fr; gap:10px; } }
 </style>
 
 <div class="shell">
@@ -63,36 +102,27 @@
     </header>
 
     <div class="layout">
-        <aside class="sidebar">
-            <div class="side-label">Patient module</div>
-            <a class="side-link" href="{{ route('dashboard') }}"><span>◉</span><span>Dashboard</span></a>
-            <a class="side-link {{ $type === 'food' ? 'current' : '' }}" href="{{ route('food.log') }}"><span>🍴</span><span>Food Intake Logger</span></a>
-            <a class="side-link {{ $type === 'symptom' ? 'current' : '' }}" href="{{ route('symptom.log') }}"><span>⌁</span><span>Symptom Tracker</span></a>
-            <a class="side-link {{ $type === 'sleep' ? 'current' : '' }}" href="{{ route('sleep.log') }}"><span>☾</span><span>Sleep &amp; Stress</span></a>
-            <a class="side-link" href="{{ route('dashboard') }}#insights"><span>✣</span><span>AI Pattern Insights</span></a>
-            <a class="side-link" href="{{ route('dashboard') }}#recommendations"><span>♧</span><span>Food Recommendations</span></a>
-            <a class="side-link" href="{{ route('dashboard') }}#history"><span>▣</span><span>Health History / Profile</span></a>
-            <div class="side-label">Admin module</div>
-            <a class="side-link" href="#"><span>⌁</span><span>Analytics Overview</span></a>
-            <a class="side-link" href="#"><span>⚒</span><span>Category &amp; Trigger Rules</span></a>
-            <a class="side-link" href="#"><span>♧</span><span>Cohort Management</span></a>
-        </aside>
+        @include('partials.sidebar', ['activeSection' => $type])
 
         <main class="main log-main">
             <div class="log-screen">
     <div class="log-layout">
-        <section class="log-intro">
+        <section class="log-intro {{ $isFood ? 'food-log-intro' : '' }}">
             <div class="log-eyebrow"><span></span> Simple daily check-in</div>
             <h1>{{ $title }}</h1>
             <p>{{ $description }}</p>
             <div class="log-steps">
-                <div class="log-step"><b>1</b><div><strong>Enter today’s details</strong><small>Use the form on this page. Only the fields marked required need to be completed.</small></div></div>
-                <div class="log-step"><b>2</b><div><strong>Save your entry</strong><small>Your information is stored privately under your patient account.</small></div></div>
-                <div class="log-step"><b>3</b><div><strong>See your new entry here</strong><small>After saving, this page refreshes and shows the new record below the form.</small></div></div>
+                <div class="log-step"><b>1</b><div><strong>{{ $isFood ? 'Tell us what you ate' : 'Enter today’s details' }}</strong><small>{{ $isFood ? 'One food or a complete meal is enough. There is no wrong answer.' : 'Use the form on this page. Only the fields marked required need to be completed.' }}</small></div></div>
+                <div class="log-step"><b>2</b><div><strong>{{ $isFood ? 'Choose the closest food group' : 'Save your entry' }}</strong><small>{{ $isFood ? 'Large category buttons make it easy to choose. Select Other if none match.' : 'Your information is stored privately under your patient account.' }}</small></div></div>
+                <div class="log-step"><b>3</b><div><strong>{{ $isFood ? 'Save it to your meal history' : 'See your new entry here' }}</strong><small>{{ $isFood ? 'Your meal will stay on this page and help reveal patterns over time.' : 'After saving, this page refreshes and shows the new record below the form.' }}</small></div></div>
             </div>
+            @if($isFood)
+                <div class="food-support"><span class="food-support-mark">✓</span><div><strong>Why log meals?</strong><p>Over time, RefluxCare compares your meals and symptoms to identify possible personal triggers.</p></div></div>
+            @endif
         </section>
 
-        <section class="log-card">
+        @if($isFood)<div class="food-form-history">@endif
+        <section class="log-card {{ $isFood ? 'food-log-card' : '' }}">
             <div class="log-card-header">
                 <div><h2>{{ $isFood ? 'What did you eat?' : ($isSymptom ? 'How are you feeling?' : 'How did you sleep?') }}</h2><p>Complete this check-in to keep your health timeline up to date.</p></div>
                 <div class="log-icon">{{ $isFood ? '🍴' : ($isSymptom ? '⌁' : '☾') }}</div>
@@ -100,9 +130,10 @@
 
             <form id="log-form">
                 @if($isFood)
-                    <div class="log-field"><label for="food_name">Food or meal name <span>*</span></label><input id="food_name" name="food_name" required placeholder="Example: oatmeal with banana"><small class="log-hint">You can enter one food or a complete meal.</small></div>
-                    <div class="log-two"><div class="log-field"><label for="category">Food category <span>*</span></label><select id="category" name="category" required><option value="" selected disabled>Select a category</option><option value="acidic">Acidic</option><option value="oily">Oily</option><option value="spicy">Spicy</option><option value="dairy">Dairy</option><option value="other">Other / none of these</option></select><small class="log-hint">Choose “Other / none of these” when the food is not acidic, oily, spicy, or dairy.</small></div><div class="log-field"><label for="time">When did you eat it? <span>*</span></label><input id="time" type="datetime-local" name="time" value="{{ now()->format('Y-m-d\TH:i') }}" required></div></div>
-                    <div class="log-field"><label for="notes">Notes <small>(optional)</small></label><textarea id="notes" name="notes" placeholder="How much did you eat? Any preparation details?"></textarea></div>
+                    <div class="log-field"><label for="food_name">What did you eat or drink? <span>*</span></label><input id="food_name" name="food_name" required placeholder="For example: oatmeal with banana"><small class="log-hint">Write one food, a drink, or the whole meal. Keep it simple.</small></div>
+                    <div class="log-field food-category-select-field"><label for="category">Which category fits best? <span>*</span></label><select id="category" name="category" required><option value="" selected disabled>Select a category</option><option value="acidic">Acidic — citrus, tomato, or vinegar</option><option value="oily">Oily or fried</option><option value="spicy">Spicy — chili, hot sauce, or pepper</option><option value="dairy">Dairy — milk, cheese, or cream</option><option value="other">Other / none of these</option></select><small class="log-hint">Choose “Other / none of these” when none of the listed categories fit.</small></div>
+                    <div class="log-field food-time-field"><label for="time">When did you eat it? <span>*</span></label><input id="time" type="datetime-local" name="time" value="{{ now()->format('Y-m-d\TH:i') }}" required><small class="log-hint">The meal time helps compare food with later symptoms.</small></div>
+                    <div class="log-field"><label for="notes">Anything else you want to remember? <small>(optional)</small></label><textarea id="notes" name="notes" placeholder="Example: I ate a large portion, drank coffee, or felt stressed."></textarea></div>
                 @elseif($isSymptom)
                     <div class="log-two"><div class="log-field"><label for="symptom_type">Symptom <span>*</span></label><select id="symptom_type" name="symptom_type" required><option value="heartburn">Heartburn</option><option value="bloating">Bloating</option><option value="pain">Pain</option></select></div><div class="log-field"><label for="intensity">Intensity <span>*</span></label><select id="intensity" name="intensity" required><option value="1">1 — Very mild</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5 — Moderate</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10 — Severe</option></select></div></div>
                     <div class="log-field"><label for="time">When did it happen? <span>*</span></label><input id="time" type="datetime-local" name="time" value="{{ now()->format('Y-m-d\TH:i') }}" required><small class="log-hint">Logging the time helps compare symptoms with meals and sleep.</small></div>
@@ -113,11 +144,16 @@
                     <div class="log-field"><label for="logged_on">Date <span>*</span></label><input id="logged_on" type="date" name="logged_on" value="{{ now()->toDateString() }}" required></div>
                     <div class="log-field"><label for="notes">Notes <small>(optional)</small></label><textarea id="notes" name="notes" placeholder="Anything that affected your sleep or stress?"></textarea></div>
                 @endif
-                <button class="log-submit" id="log-submit" type="submit">Save {{ $isFood ? 'food entry' : ($isSymptom ? 'symptom entry' : 'sleep entry') }}</button>
+                <button class="log-submit" id="log-submit" type="submit">{{ $isFood ? 'Save meal to my timeline' : 'Save '.($isSymptom ? 'symptom entry' : 'sleep entry') }}</button>
                 <p id="log-status" class="log-status" aria-live="polite"></p>
             </form>
+            @if($isFood)
+                </section>
+                <section class="log-card food-history-card">
+                    <div class="food-history-heading"><span class="food-history-heading-mark">🍽️</span><div><h2>Your meal history</h2><p>Your latest saved meals</p></div></div>
+            @endif
             <section class="recent-logs">
-                <h3>{{ $isFood ? 'Your recent food entries' : ($isSymptom ? 'Your recent symptom entries' : 'Your recent sleep entries') }}</h3>
+                <h3>{{ $isFood ? 'Saved meals' : ($isSymptom ? 'Your recent symptom entries' : 'Your recent sleep entries') }}</h3>
                 <div class="recent-log-list">
                     @forelse($recentLogs as $log)
                         <div class="recent-log">
@@ -137,7 +173,12 @@
                     @endforelse
                 </div>
             </section>
-        </section>
+            @if($isFood)
+                </section>
+            </div>
+            @else
+                </section>
+            @endif
     </div>
             </div>
         </main>

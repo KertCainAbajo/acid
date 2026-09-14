@@ -25,6 +25,7 @@
     .section-metric-card strong { display:block; margin-top:8px; color:#173e47; font-size:28px; letter-spacing:-.06em; }
     .section-metric-card p { margin:3px 0 0; color:#799095; font-size:11px; }
     .section-content-grid { display:grid; grid-template-columns:minmax(0,1.25fr) minmax(300px,.75fr); gap:20px; align-items:start; }
+    .section-hero + .section-content-grid { margin-top:22px; }
     .section-card { padding:26px; }
     .section-card-header { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; margin-bottom:19px; }
     .section-card h2 { margin:0 0 5px; color:#173e47; font-size:22px; letter-spacing:-.04em; }
@@ -68,8 +69,8 @@
 
 <div class="shell">
     <header class="topbar">
-        <a class="brand" href="{{ route('dashboard') }}"><img class="brand-logo" src="{{ asset('images/logo1.png') }}" alt="RefluxCare logo"><span>RefluxCare<small>CLINICAL PLATFORM</small></span></a>
-        <div class="top-actions"><span class="pill active">Patient Portal</span><span class="pill">Search your logs</span><span class="pill">Today, {{ now()->format('M d') }}</span><span class="avatar">{{ strtoupper(substr($user->name, 0, 1)) }}</span><form method="POST" action="{{ route('logout') }}">@csrf<button class="pill" style="cursor:pointer">Log out</button></form></div>
+        <a class="brand" href="{{ route('dashboard') }}"><img class="brand-logo" src="{{ asset('images/logo1.png') }}" alt="RefluxCare logo"><span>RefluxCare</span></a>
+        <div class="top-actions"><span class="pill active">Patient Portal</span><a class="pill" href="{{ route('logs.search') }}">⌕ Search your logs</a><span class="pill">Today, {{ now()->format('M d') }}</span><span class="avatar">{{ strtoupper(substr($user->name, 0, 1)) }}</span><form method="POST" action="{{ route('logout') }}">@csrf<button class="pill" style="cursor:pointer">Log out</button></form></div>
     </header>
 
     <div class="layout">

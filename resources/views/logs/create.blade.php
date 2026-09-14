@@ -97,8 +97,8 @@
 
 <div class="shell">
     <header class="topbar">
-        <a class="brand" href="{{ route('dashboard') }}"><img class="brand-logo" src="{{ asset('images/logo1.png') }}" alt="RefluxCare logo"><span>RefluxCare<small>CLINICAL PLATFORM</small></span></a>
-        <div class="top-actions"><span class="pill active">Patient Portal</span><span class="pill">Search your logs</span><span class="pill">Today, {{ now()->format('M d') }}</span><span class="avatar">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</span><form method="POST" action="{{ route('logout') }}">@csrf<button class="pill" style="cursor:pointer">Log out</button></form></div>
+        <a class="brand" href="{{ route('dashboard') }}"><img class="brand-logo" src="{{ asset('images/logo1.png') }}" alt="RefluxCare logo"><span>RefluxCare</span></a>
+        <div class="top-actions"><span class="pill active">Patient Portal</span><a class="pill" href="{{ route('logs.search') }}">⌕ Search your logs</a><span class="pill">Today, {{ now()->format('M d') }}</span><span class="avatar">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</span><form method="POST" action="{{ route('logout') }}">@csrf<button class="pill" style="cursor:pointer">Log out</button></form></div>
     </header>
 
     <div class="layout">

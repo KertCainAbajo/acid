@@ -119,4 +119,27 @@ class AcidRefluxApiTest extends TestCase
         $this->get('/recommendations')->assertOk()->assertSee('Food Recommendations');
         $this->get('/health-history')->assertOk()->assertSee('Health History &amp; Profile', false);
     }
+
+    public function test_patient_search_only_returns_their_own_matching_logs(): void
+    {
+        $patient = User::factory()->create();
+        $otherPatient = User::factory()->create();
+        FoodLog::create([
+            'user_id' => $patient->id,
+            'food_name' => 'Banana oatmeal',
+            'category' => 'other',
+            'time' => now(),
+        ]);
+        FoodLog::create([
+            'user_id' => $otherPatient->id,
+            'food_name' => 'Private banana meal',
+            'category' => 'other',
+            'time' => now(),
+        ]);
+
+        $this->actingAs($patient)->get('/search-logs?q=banana')
+            ->assertOk()
+            ->assertSee('Banana oatmeal')
+            ->assertDontSee('Private banana meal');
+    }
 }

@@ -4,13 +4,19 @@ namespace App\Http\Controllers;
 
 use App\Services\InsightService;
 use Carbon\CarbonImmutable;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    public function __invoke(InsightService $insightService): View
+    public function __invoke(InsightService $insightService): RedirectResponse|View
     {
         $user = request()->user();
+
+        if ($user->isAdmin()) {
+            return redirect()->route('admin.dashboard');
+        }
+
         $today = CarbonImmutable::today();
         $latestInsight = $user->insights()->latest('generated_at')->first() ?? $insightService->generate($user);
         $foods = $user->foodLogs()->latest('time')->limit(8)->get();

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LogPageController;
 use App\Http\Controllers\LogSearchController;
@@ -18,6 +19,11 @@ Route::get('/auth/google/callback', [WebAuthController::class, 'googleCallback']
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
+    Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
+        Route::get('/dashboard', AdminDashboardController::class)->name('dashboard');
+        Route::get('/patients', [AdminDashboardController::class, 'patients'])->name('patients');
+        Route::get('/activity', [AdminDashboardController::class, 'activity'])->name('activity');
+    });
     Route::get('/food-log', [LogPageController::class, 'food'])->name('food.log');
     Route::get('/symptom-log', [LogPageController::class, 'symptom'])->name('symptom.log');
     Route::get('/sleep-stress', [LogPageController::class, 'sleep'])->name('sleep.log');

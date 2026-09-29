@@ -12,18 +12,21 @@
         a { color:inherit; text-decoration:none; }
         button, input, select { font:inherit; }
         .shell { min-height:100vh; animation:shellEnter .38s cubic-bezier(.2,.75,.25,1) both; }
-        .topbar { position:sticky; top:0; z-index:20; height:74px; display:flex; align-items:center; justify-content:space-between; padding:0 clamp(24px,3vw,52px); background:#fffffff2; border-bottom:1px solid #dfece8; box-shadow:0 8px 24px #174b3808; backdrop-filter:blur(18px); }
-        .brand { display:flex; align-items:center; gap:10px; font-weight:800; color:var(--green); letter-spacing:-.02em; transition:transform .2s ease; }
+        .topbar { position:sticky; top:0; z-index:20; height:78px; display:flex; align-items:center; justify-content:space-between; padding:0 clamp(24px,4vw,64px); background:#ffffffed; border-bottom:1px solid #e5eeeb; box-shadow:0 10px 28px #174b3809; backdrop-filter:blur(20px); }
+        .brand { display:flex; align-items:center; gap:11px; font-size:15px; font-weight:850; color:#145b48; letter-spacing:-.035em; transition:transform .2s ease; }
         .brand:hover { transform:translateY(-1px); }
-        .brand-logo { width:32px; height:32px; display:block; object-fit:contain; border-radius:9px; }
+        .brand-logo { width:38px; height:38px; display:block; object-fit:contain; padding:4px; border:1px solid #d8eee4; border-radius:13px; background:linear-gradient(145deg,#f0fff7,#e4f6ed); }
         .brand small { display:none; }
-        .top-actions { display:flex; align-items:center; gap:9px; padding:6px; border:1px solid #e2ece9; border-radius:19px; background:#ffffffd9; box-shadow:0 10px 24px #174b380b; backdrop-filter:blur(12px); }
-        .pill { display:inline-flex; align-items:center; min-height:38px; border:1px solid #dde9e6; border-radius:13px; padding:8px 13px; background:#fbfefd; color:#5e757b; font-size:12px; transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease,background .2s ease; }
+        .top-actions { display:flex; align-items:center; gap:8px; padding:0; border:0; border-radius:0; background:transparent; box-shadow:none; }
+        .pill { display:inline-flex; align-items:center; min-height:40px; border:1px solid #e3ece9; border-radius:14px; padding:9px 14px; background:#fff; color:#526d70; font-size:12px; font-weight:600; transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease,background .2s ease; }
         .pill:hover { transform:translateY(-1px); border-color:#bfe6d6; background:#fff; box-shadow:0 8px 16px #174b3810; }
-        .pill.active { color:#12664e; background:linear-gradient(135deg,#eafaf3,#dff8ec); border-color:#c3ead8; font-weight:750; }
-        .avatar { width:42px; height:42px; display:grid; place-items:center; color:#fff; background:linear-gradient(135deg,#e5a58c,#c97b63); border:2px solid #fff; border-radius:14px; font-weight:800; box-shadow:0 7px 15px #9a634526; }
-        .top-actions form .pill { min-height:38px; border:0; color:#45656a; background:transparent; box-shadow:none; }
-        .top-actions form .pill:hover { color:#12664e; background:#eff9f4; }
+        .pill.active { color:#145b48; background:#e9f8f0; border-color:#d2eddf; font-weight:750; }
+        .top-actions > a.pill { gap:8px; background:#f8fbfa; }
+        .top-actions > a.pill:hover { color:#145b48; background:#f0faf5; }
+        .avatar { width:40px; height:40px; display:grid; place-items:center; color:#17684f; background:linear-gradient(145deg,#e7f8ef,#cdebdc); border:1px solid #d1eadc; border-radius:50%; font-size:13px; font-weight:800; box-shadow:0 5px 13px #17684f12; }
+        .top-actions form { margin:0 0 0 3px; padding-left:11px; border-left:1px solid #e4ece8; }
+        .top-actions form .pill { min-height:40px; border-color:transparent; color:#63777a; background:transparent; box-shadow:none; }
+        .top-actions form .pill:hover { border-color:#f4d9d7; color:#a53c37; background:#fff5f4; }
         .layout { display:flex; min-width:0; min-height:calc(100vh - 74px); }
         .sidebar { position:sticky; top:74px; z-index:10; width:238px; height:calc(100vh - 74px); flex:none; align-self:flex-start; overflow-y:auto; padding:18px 10px 16px; background:linear-gradient(180deg,#ffffff 0%,#f8fcfa 52%,#f1faf6 100%); border-right:1px solid #dfece7; scrollbar-width:thin; scrollbar-color:#c9ddd7 transparent; }
         .sidebar-heading { display:flex; align-items:center; gap:9px; margin:0 4px 20px; padding:11px 10px; border:1px solid #d9eee5; border-radius:17px; background:linear-gradient(135deg,#f5fffa,#e9f9f1); box-shadow:0 8px 18px #17684f0b; }
@@ -140,7 +143,7 @@
         @media (prefers-reduced-motion: reduce) { *, *:before, *:after { scroll-behavior:auto !important; transition-duration:0.01ms !important; animation-duration:0.01ms !important; animation-iteration-count:1 !important; } }
         @media (max-width:1000px) { .cards { grid-template-columns:repeat(2,1fr); } .two-col { grid-template-columns:1fr; } .welcome { align-items:flex-start; flex-direction:column; } .quick-actions { width:100%; max-width:460px; } .main { width:auto; } .sidebar { width:78px; padding:22px 10px 18px; } .sidebar-heading { justify-content:center; margin:0 0 24px; padding:8px; } .sidebar-heading-copy,.sidebar-footer,.side-copy,.side-arrow,.side-label { display:none; } .side-link { justify-content:center; padding:9px; } }
         @media (max-width:900px) { .top-actions .pill:not(.active), .top-actions form { display:none; } }
-        @media (max-width:700px) { .topbar { height:64px; padding:0 15px; } .topbar .pill { display:none; } .topbar .pill.active { display:inline-flex; padding:7px 10px; font-size:11px; } .main { width:100%; padding:15px; } .sidebar { display:none; } .cards { grid-template-columns:1fr; } .quick-actions { width:100%; } .quick { min-height:92px; border-radius:18px; } .auth-grid { grid-template-columns:1fr; margin-top:35px; gap:25px; } .auth-copy h1 { font-size:38px; } .auth-bg { padding:18px; } }
+        @media (max-width:700px) { .topbar { height:66px; padding:0 15px; } .brand { gap:8px; font-size:14px; } .brand-logo { width:34px; height:34px; } .top-actions { gap:6px; } .topbar .pill { display:none; } .topbar .pill.active { display:inline-flex; min-height:34px; padding:7px 10px; font-size:10px; } .avatar { width:35px; height:35px; } .main { width:100%; padding:15px; } .sidebar { display:none; } .cards { grid-template-columns:1fr; } .quick-actions { width:100%; } .quick { min-height:92px; border-radius:18px; } .auth-grid { grid-template-columns:1fr; margin-top:35px; gap:25px; } .auth-copy h1 { font-size:38px; } .auth-bg { padding:18px; } }
     </style>
     @vite('resources/js/app.js')
 </head>

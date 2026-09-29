@@ -33,7 +33,9 @@ class WebAuthController extends Controller
         $request->session()->regenerate();
         $this->storeDashboardToken($request, $user);
 
-        return redirect()->intended(route('dashboard'));
+        return $user->isAdmin()
+            ? redirect()->route('admin.dashboard')
+            : redirect()->intended(route('dashboard'));
     }
 
     public function register(Request $request): RedirectResponse
@@ -101,7 +103,9 @@ class WebAuthController extends Controller
         $request->session()->regenerate();
         $this->storeDashboardToken($request, $user);
 
-        return redirect()->route('dashboard');
+        return $user->isAdmin()
+            ? redirect()->route('admin.dashboard')
+            : redirect()->route('dashboard');
     }
 
     private function storeDashboardToken(Request $request, User $user): void

@@ -99,6 +99,9 @@ class AdminController extends Controller
         }
 
         $user->update($data);
+        if (! $user->is_active) {
+            $user->tokens()->delete();
+        }
         $this->systemLogService->record($request, 'user_account_updated', $user, ['changes' => array_keys($data)]);
 
         return response()->json(['message' => 'User account updated.', 'data' => $user->fresh()]);

@@ -15,6 +15,8 @@ use App\Services\SystemLogService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\ValidationException;
 
 class PatientController extends Controller
 {
@@ -44,14 +46,69 @@ class PatientController extends Controller
     public function storeSleep(SleepLogRequest $request): JsonResponse
     {
         $data = $request->validated();
-        $log = $request->user()->sleepLogs()->updateOrCreate(
-            ['logged_on' => $data['logged_on']],
-            $data,
-        );
-        $this->systemLogService->record($request, 'sleep_log_created', $log);
+        $existingLog = $request->user()->sleepLogs()->whereDate('logged_on', $data['logged_on'])->first();
+        $log = $existingLog
+            ? tap($existingLog)->update($data)
+            : $request->user()->sleepLogs()->create($data);
+        $this->systemLogService->record($request, $existingLog ? 'sleep_log_updated' : 'sleep_log_created', $log);
         $insight = $this->insightService->generate($request->user());
 
-        return response()->json(['message' => 'Sleep and stress log saved.', 'data' => $log, 'insight' => $insight], 201);
+        return response()->json([
+            'message' => $existingLog ? 'Sleep and stress log updated for that day.' : 'Sleep and stress log saved.',
+            'data' => $log,
+            'insight' => $insight,
+        ], $existingLog ? 200 : 201);
+    }
+
+    public function updateFood(FoodLogRequest $request, FoodLog $foodLog): JsonResponse
+    {
+        Gate::authorize('update', $foodLog);
+
+        return $this->updateEntry($request, $foodLog, $request->validated(), 'food_log_updated', 'Food log updated.');
+    }
+
+    public function destroyFood(Request $request, FoodLog $foodLog): JsonResponse
+    {
+        Gate::authorize('delete', $foodLog);
+
+        return $this->deleteEntry($request, $foodLog, 'food_log_deleted', 'Food log deleted.');
+    }
+
+    public function updateSymptom(SymptomLogRequest $request, SymptomLog $symptomLog): JsonResponse
+    {
+        Gate::authorize('update', $symptomLog);
+
+        return $this->updateEntry($request, $symptomLog, $request->validated(), 'symptom_log_updated', 'Symptom log updated.');
+    }
+
+    public function destroySymptom(Request $request, SymptomLog $symptomLog): JsonResponse
+    {
+        Gate::authorize('delete', $symptomLog);
+
+        return $this->deleteEntry($request, $symptomLog, 'symptom_log_deleted', 'Symptom log deleted.');
+    }
+
+    public function updateSleep(SleepLogRequest $request, SleepLog $sleepLog): JsonResponse
+    {
+        Gate::authorize('update', $sleepLog);
+        $data = $request->validated();
+
+        $dayIsTaken = $request->user()->sleepLogs()
+            ->whereDate('logged_on', $data['logged_on'])
+            ->whereKeyNot($sleepLog->getKey())
+            ->exists();
+        if ($dayIsTaken) {
+            throw ValidationException::withMessages(['logged_on' => 'You already have a sleep entry for that day. Edit that entry instead.']);
+        }
+
+        return $this->updateEntry($request, $sleepLog, $data, 'sleep_log_updated', 'Sleep and stress log updated.');
+    }
+
+    public function destroySleep(Request $request, SleepLog $sleepLog): JsonResponse
+    {
+        Gate::authorize('delete', $sleepLog);
+
+        return $this->deleteEntry($request, $sleepLog, 'sleep_log_deleted', 'Sleep and stress log deleted.');
     }
 
     public function insights(Request $request): JsonResponse
@@ -128,6 +185,37 @@ class PatientController extends Controller
         $logs = $request->user()->sleepLogs()->when($from, fn ($query) => $query->whereDate('logged_on', '>=', $from->toDateString()))->when($to, fn ($query) => $query->whereDate('logged_on', '<=', $to->toDateString()))->latest('logged_on')->paginate(25);
 
         return response()->json($logs);
+    }
+
+    /**
+     * Apply a correction to one of the patient's entries and refresh their insight.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    private function updateEntry(Request $request, FoodLog|SymptomLog|SleepLog $entry, array $data, string $action, string $message): JsonResponse
+    {
+        $entry->update($data);
+        $this->systemLogService->record($request, $action, $entry, ['changes' => array_keys($entry->getChanges())]);
+
+        return response()->json([
+            'message' => $message,
+            'data' => $entry->fresh(),
+            'insight' => $this->insightService->generate($request->user()),
+        ]);
+    }
+
+    /**
+     * Remove one of the patient's entries and refresh their insight.
+     */
+    private function deleteEntry(Request $request, FoodLog|SymptomLog|SleepLog $entry, string $action, string $message): JsonResponse
+    {
+        $entry->delete();
+        $this->systemLogService->record($request, $action, $entry);
+
+        return response()->json([
+            'message' => $message,
+            'insight' => $this->insightService->generate($request->user()),
+        ]);
     }
 
     private function dateRange(Request $request): array

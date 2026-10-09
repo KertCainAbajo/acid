@@ -10,11 +10,11 @@ class Insight extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'risk_level', 'insight_text', 'generated_at'];
+    protected $fillable = ['user_id', 'risk_level', 'risk_score', 'insight_text', 'details', 'generated_at'];
 
     protected function casts(): array
     {
-        return ['generated_at' => 'datetime'];
+        return ['generated_at' => 'datetime', 'risk_score' => 'integer', 'details' => 'array'];
     }
 
     public function user(): BelongsTo

@@ -6,72 +6,46 @@ use App\Models\FoodLog;
 use App\Models\Insight;
 use App\Models\SymptomLog;
 use App\Models\User;
-use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 
 class InsightService
 {
-    public function generate(User $user, int $lookbackDays = 7): Insight
+    public function __construct(private readonly PatternAnalysisService $patternAnalysis) {}
+
+    /**
+     * Analyse the patient's recent logs and store the result as their latest insight.
+     */
+    public function generate(User $user): Insight
     {
-        $end = CarbonImmutable::now();
-        $start = $end->subDays($lookbackDays);
-        $foods = $this->foods($user, $start, $end);
-        $symptoms = $this->symptoms($user, $start, $end);
-        $sleep = $this->sleep($user, $start, $end);
-        $triggers = $this->findTriggers($foods, $symptoms);
-
-        $symptomCount = $symptoms->count();
-        $averageIntensity = $symptomCount > 0 ? round((float) $symptoms->avg('intensity'), 1) : 0;
-        $averageSleep = $sleep->count() > 0 ? round((float) $sleep->avg('sleep_hours'), 1) : null;
-        $averageStress = $sleep->count() > 0 ? round((float) $sleep->avg('stress_level'), 1) : null;
-
-        $symptomScore = min(35, ($symptomCount * 5) + ($averageIntensity * 2));
-        $triggerScore = min(30, $triggers->count() * 5);
-        $sleepScore = 0;
-        if ($averageSleep !== null && $averageSleep < 6) {
-            $sleepScore += 15;
-        } elseif ($averageSleep !== null && $averageSleep < 7) {
-            $sleepScore += 7;
-        }
-        if ($averageStress !== null && $averageStress >= 8) {
-            $sleepScore += 10;
-        } elseif ($averageStress !== null && $averageStress >= 6) {
-            $sleepScore += 5;
-        }
-
-        $score = $symptomScore + $triggerScore + $sleepScore;
-        $riskLevel = $score >= 60 ? 'high' : ($score >= 25 ? 'medium' : 'low');
-        $lines = [
-            sprintf('Weekly summary: %d symptom%s recorded from %s to %s, with an average intensity of %s/10.', $symptomCount, $symptomCount === 1 ? '' : 's', $start->toDateString(), $end->toDateString(), $averageIntensity),
-            sprintf('You logged %d food entr%s and %d sleep entr%s.', $foods->count(), $foods->count() === 1 ? 'y' : 'ies', $sleep->count(), $sleep->count() === 1 ? 'y' : 'ies'),
-        ];
-
-        if ($triggers->isNotEmpty()) {
-            $lines[] = 'Potential food triggers: '.$triggers->map(fn (array $trigger) => sprintf('%s (%d association%s)', $trigger['food'], $trigger['count'], $trigger['count'] === 1 ? '' : 's'))->implode(', ').'.';
-        } else {
-            $lines[] = 'No consistent food trigger was identified in this period.';
-        }
-
-        if ($averageSleep !== null) {
-            $lines[] = sprintf('Sleep averaged %s hours and stress averaged %s/10.', $averageSleep, $averageStress);
-        } else {
-            $lines[] = 'Add sleep and stress entries to improve the reliability of this risk estimate.';
-        }
-
-        $lines[] = 'Risk level is '.$riskLevel.' based on symptom frequency, food associations, and sleep/stress patterns. This is a tracking aid, not a medical diagnosis.';
+        $analysis = $this->patternAnalysis->analyze($user);
 
         return $user->insights()->create([
-            'risk_level' => $riskLevel,
-            'insight_text' => implode(' ', $lines),
-            'generated_at' => now(),
+            'risk_level' => $analysis['risk']['level'],
+            'risk_score' => $analysis['risk']['score'],
+            'insight_text' => $analysis['summary'],
+            'details' => [
+                'headline' => $analysis['headline'],
+                'factors' => $analysis['risk']['factors'],
+                'trend' => $analysis['trend']['direction'],
+                'symptoms' => $analysis['week']['symptoms'],
+                'confidence' => $analysis['dataQuality']['level'],
+            ],
+            'generated_at' => $analysis['generatedAt'],
         ]);
     }
 
+    /**
+     * Foods followed by at least one symptom within the trigger window, most associations first.
+     *
+     * @param  Collection<int, FoodLog>  $foods
+     * @param  Collection<int, SymptomLog>  $symptoms
+     * @return Collection<int, array{food: string, count: int}>
+     */
     public function findTriggers(Collection $foods, Collection $symptoms): Collection
     {
         return $foods->map(function (FoodLog $food) use ($symptoms): ?array {
             $relatedSymptoms = $symptoms->filter(fn (SymptomLog $symptom) => $symptom->time->greaterThanOrEqualTo($food->time)
-                && $symptom->time->lessThanOrEqualTo($food->time->copy()->addHours(6))
+                && $symptom->time->lessThanOrEqualTo($food->time->copy()->addHours(PatternAnalysisService::MEAL_WINDOW_HOURS))
             );
 
             return $relatedSymptoms->isNotEmpty() ? [
@@ -82,20 +56,5 @@ class InsightService
             'food' => $food,
             'count' => $matches->sum('count'),
         ])->sortByDesc('count')->values();
-    }
-
-    private function foods(User $user, CarbonImmutable $start, CarbonImmutable $end): Collection
-    {
-        return $user->foodLogs()->whereBetween('time', [$start, $end])->get();
-    }
-
-    private function symptoms(User $user, CarbonImmutable $start, CarbonImmutable $end): Collection
-    {
-        return $user->symptomLogs()->whereBetween('time', [$start, $end])->get();
-    }
-
-    private function sleep(User $user, CarbonImmutable $start, CarbonImmutable $end): Collection
-    {
-        return $user->sleepLogs()->whereBetween('logged_on', [$start->toDateString(), $end->toDateString()])->get();
     }
 }

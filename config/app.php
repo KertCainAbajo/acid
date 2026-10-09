@@ -69,6 +69,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Patient Timezone
+    |--------------------------------------------------------------------------
+    |
+    | Log times are stored in the application timezone. Pattern analysis that
+    | depends on the time of day (late meals, night-time symptoms) converts
+    | them to the timezone patients actually live in.
+    |
+    */
+
+    'patient_timezone' => env('PATIENT_TIMEZONE', 'UTC'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Locale Configuration
     |--------------------------------------------------------------------------
     |

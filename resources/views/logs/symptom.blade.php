@@ -18,47 +18,15 @@
     $contextTags = ['After a meal', 'Lying down', 'At night', 'After coffee', 'Feeling stressed', 'Large portion'];
 @endphp
 @include('logs.partials.styles')
+@include('logs.partials.entry-actions')
 <style>
     .lp-tone-violet { --tone:#6d28d9; --tone-soft:#f5f3ff; --tone-mid:#ddd6fe; }
     .lp-categories.is-three { grid-template-columns:repeat(3,minmax(0,1fr)); }
     .lp-categories.is-three .lp-category { min-height:118px; }
 
-    .st-intensity { padding:18px; border:1.5px solid var(--line); border-radius:16px; background:#fafcfb; transition:border-color .2s ease,box-shadow .2s ease; }
-    .st-intensity:focus-within { border-color:#10b981; box-shadow:0 0 0 4px #d1fae5b3; }
-    .st-intensity-top { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:16px; }
-    .st-intensity-value { display:flex; align-items:baseline; gap:6px; }
-    .st-intensity-value strong { color:var(--tone); font-size:40px; font-weight:800; line-height:1; letter-spacing:-.04em; transition:color .2s ease; }
-    .st-intensity-value span { color:#94a3b8; font-size:14px; font-weight:600; }
-    .st-intensity-label { padding:6px 12px; border-radius:999px; color:var(--tone); background:var(--tone-soft); box-shadow:inset 0 0 0 1px var(--tone-mid); font-size:13px; font-weight:700; transition:color .2s ease,background .2s ease; }
-    .st-range { width:100%; height:10px; margin:0; border-radius:999px; background:linear-gradient(90deg,#34d399,#facc15 45%,#fb923c 70%,#dc2626); -webkit-appearance:none; appearance:none; cursor:pointer; outline:none; }
-    .st-range::-webkit-slider-thumb { width:28px; height:28px; border:4px solid #fff; border-radius:50%; background:var(--tone); box-shadow:0 0 0 1px #cbd5e1,0 6px 14px -4px #0f172a66; -webkit-appearance:none; appearance:none; transition:transform .15s ease; }
-    .st-range::-webkit-slider-thumb:hover { transform:scale(1.1); }
-    .st-range::-moz-range-thumb { width:22px; height:22px; border:4px solid #fff; border-radius:50%; background:var(--tone); box-shadow:0 0 0 1px #cbd5e1,0 6px 14px -4px #0f172a66; }
-    .st-range:focus-visible::-webkit-slider-thumb { box-shadow:0 0 0 4px #a7f3d0,0 6px 14px -4px #0f172a66; }
-    .st-scale { display:grid; grid-template-columns:repeat(10,1fr); gap:4px; margin-top:12px; }
-    .st-scale button { height:30px; padding:0; border:1px solid var(--line); border-radius:8px; color:#64748b; background:#fff; font-size:12px; font-weight:700; cursor:pointer; transition:background .15s ease,color .15s ease,border-color .15s ease,transform .15s ease; }
-    .st-scale button:hover { border-color:#cbd5e1; transform:translateY(-1px); }
-    .st-scale button.is-active { border-color:var(--tone); color:#fff; background:var(--tone); }
-    .st-scale-ends { display:flex; justify-content:space-between; margin-top:6px; color:#94a3b8; font-size:11.5px; }
-    .st-care { display:none; align-items:flex-start; gap:10px; margin-top:12px; padding:12px 14px; border:1px solid #fecaca; border-radius:13px; color:#991b1b; background:#fef2f2; font-size:13px; line-height:1.5; }
-    .st-care.is-on { display:flex; animation:lpRise .3s ease both; }
-    .st-care svg { flex:none; margin-top:1px; }
     .st-tag.is-active { border-color:var(--green); color:var(--green-deep); background:#ecfdf5; }
     .st-tag svg { width:12px; height:12px; fill:none; stroke:currentColor; stroke-width:2.6; stroke-linecap:round; }
 
-    .st-chart { display:grid; grid-template-columns:repeat(7,1fr); gap:8px; align-items:end; height:140px; padding:0 2px; background:repeating-linear-gradient(to top,#eef2f1 0 1px,transparent 1px 35px); border-bottom:1px solid #e2e8f0; }
-    .st-col { position:relative; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; height:100%; border-radius:10px; }
-    .st-col.is-today { background:linear-gradient(to top,#ecfdf5,transparent); }
-    .st-col i { width:min(22px,60%); min-height:4px; border-radius:7px 7px 2px 2px; background:var(--tone); transform-origin:bottom; animation:stGrow .8s cubic-bezier(.2,.8,.2,1) both; }
-    .st-col i.is-zero { background:#e2e8f0; }
-    .st-col b { margin-bottom:4px; color:#475569; font-size:11px; }
-    .st-tip { position:absolute; bottom:calc(100% + 6px); left:50%; z-index:5; min-width:120px; padding:8px 10px; border-radius:10px; color:#fff; background:#0b1f2a; font-size:11.5px; line-height:1.45; opacity:0; pointer-events:none; transform:translate(-50%,6px); transition:opacity .18s ease,transform .18s ease; }
-    .st-col:hover .st-tip { opacity:1; transform:translate(-50%,0); }
-    .st-days { display:grid; grid-template-columns:repeat(7,1fr); gap:8px; margin-top:8px; color:#94a3b8; font-size:11.5px; font-weight:600; text-align:center; }
-    .st-days .is-today { color:var(--green); }
-    .st-scale-legend { display:flex; flex-wrap:wrap; gap:12px; margin-top:14px; color:var(--muted); font-size:11.5px; }
-    .st-scale-legend span { display:inline-flex; align-items:center; gap:5px; }
-    .st-scale-legend i { width:9px; height:9px; border-radius:3px; background:var(--tone); }
 
     .st-type-row { display:grid; grid-template-columns:36px minmax(0,1fr) auto; align-items:center; gap:12px; }
     .st-type-row + .st-type-row { margin-top:12px; }
@@ -80,8 +48,7 @@
     .st-meals span { padding:1px 7px; border-radius:999px; color:#9a3412; background:#fff7ed; box-shadow:inset 0 0 0 1px #fed7aa; font-weight:600; }
     .st-entry time { color:#94a3b8; font-size:12px; font-weight:600; white-space:nowrap; }
 
-    @keyframes stGrow { from { transform:scaleY(0); } }
-    @media (max-width:700px) { .lp-categories.is-three { grid-template-columns:minmax(0,1fr); } .lp-categories.is-three .lp-category { min-height:0; flex-direction:row; align-items:center; } .lp-categories.is-three .lp-category-tag { display:none; } .st-scale { grid-template-columns:repeat(5,1fr); } }
+    @media (max-width:700px) { .lp-categories.is-three { grid-template-columns:minmax(0,1fr); } .lp-categories.is-three .lp-category { min-height:0; flex-direction:row; align-items:center; } .lp-categories.is-three .lp-category-tag { display:none; } .lp-scale { grid-template-columns:repeat(5,1fr); } }
 </style>
 
 <div class="shell">
@@ -134,19 +101,19 @@
 
                         <div class="lp-field">
                             <label class="lp-label" for="intensity"><span>How strong is it? <em>*</em></span><small>1 = barely noticeable · 10 = worst</small></label>
-                            <div class="st-intensity lp-tone-amber" id="intensity-box">
-                                <div class="st-intensity-top">
-                                    <div class="st-intensity-value"><strong id="intensity-value">5</strong><span>/ 10</span></div>
-                                    <span class="st-intensity-label" id="intensity-label">Moderate</span>
+                            <div class="lp-meter lp-tone-amber" id="intensity-box">
+                                <div class="lp-meter-top">
+                                    <div class="lp-meter-value"><strong id="intensity-value">5</strong><span>/ 10</span></div>
+                                    <span class="lp-meter-label" id="intensity-label">Moderate</span>
                                 </div>
-                                <input class="st-range" id="intensity" type="range" name="intensity" min="1" max="10" step="1" value="5" aria-describedby="intensity-error" aria-valuetext="5 out of 10, Moderate">
-                                <div class="st-scale" role="group" aria-label="Pick an intensity">
+                                <input class="lp-range" id="intensity" type="range" name="intensity" min="1" max="10" step="1" value="5" aria-describedby="intensity-error" aria-valuetext="5 out of 10, Moderate">
+                                <div class="lp-scale" role="group" aria-label="Pick an intensity">
                                     @for ($level = 1; $level <= 10; $level++)
                                         <button type="button" data-level="{{ $level }}" class="{{ $level === 5 ? 'is-active' : '' }}" aria-label="Intensity {{ $level }}">{{ $level }}</button>
                                     @endfor
                                 </div>
-                                <div class="st-scale-ends"><span>Very mild</span><span>Severe</span></div>
-                                <div class="st-care" id="intensity-care" role="note">
+                                <div class="lp-scale-ends"><span>Very mild</span><span>Severe</span></div>
+                                <div class="lp-care" id="intensity-care" role="note">
                                     <svg class="lp-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
                                     <span>If you have chest pain, trouble swallowing, vomiting, or pain that spreads to your arm or jaw, contact a healthcare provider or emergency services right away.</span>
                                 </div>
@@ -198,17 +165,17 @@
                 <div class="lp-side">
                     <section class="lp-panel">
                         <div class="lp-panel-head"><div><h2>Severity this week</h2><p>Highest intensity per day · last 7 days</p></div></div>
-                        <div class="st-chart" role="img" aria-label="Highest symptom intensity for each of the last 7 days">
+                        <div class="lp-chart" role="img" aria-label="Highest symptom intensity for each of the last 7 days">
                             @foreach ($weeklySeverity as $index => $day)
-                                <div class="st-col {{ $day['isToday'] ? 'is-today' : '' }}">
+                                <div class="lp-col {{ $day['isToday'] ? 'is-today' : '' }}">
                                     @if ($day['count'])<b>{{ $day['maxIntensity'] }}</b>@endif
                                     <i class="{{ $day['count'] ? 'lp-tone-'.$severity($day['maxIntensity'])['tone'] : 'is-zero' }}" style="height:{{ $day['count'] ? $day['maxIntensity'] * 10 : 3 }}%;animation-delay:{{ $index * 0.05 }}s"></i>
-                                    <span class="st-tip"><strong style="display:block">{{ $day['label'] }}, {{ $day['date'] }}</strong>{{ $day['count'] ? $day['count'].' symptom'.($day['count'] === 1 ? '' : 's').' · peak '.$day['maxIntensity'].'/10' : 'No symptoms' }}</span>
+                                    <span class="lp-chart-tip"><strong style="display:block">{{ $day['label'] }}, {{ $day['date'] }}</strong>{{ $day['count'] ? $day['count'].' symptom'.($day['count'] === 1 ? '' : 's').' · peak '.$day['maxIntensity'].'/10' : 'No symptoms' }}</span>
                                 </div>
                             @endforeach
                         </div>
-                        <div class="st-days">@foreach ($weeklySeverity as $day)<span class="{{ $day['isToday'] ? 'is-today' : '' }}">{{ $day['isToday'] ? 'Today' : $day['label'] }}</span>@endforeach</div>
-                        <div class="st-scale-legend">
+                        <div class="lp-days">@foreach ($weeklySeverity as $day)<span class="{{ $day['isToday'] ? 'is-today' : '' }}">{{ $day['isToday'] ? 'Today' : $day['label'] }}</span>@endforeach</div>
+                        <div class="lp-chart-legend">
                             <span class="lp-tone-green"><i></i> Mild</span><span class="lp-tone-amber"><i></i> Moderate</span><span class="lp-tone-orange"><i></i> Strong</span><span class="lp-tone-red"><i></i> Severe</span>
                         </div>
                     </section>
@@ -240,7 +207,7 @@
                                         @foreach ($logs as $log)
                                             @php($meta = $typeMeta[$log->symptom_type] ?? $typeMeta['pain'])
                                             @php($level = $severity($log->intensity))
-                                            <div class="st-entry lp-tone-{{ $meta['tone'] }}">
+                                            <div class="st-entry lp-entry lp-tone-{{ $meta['tone'] }}" data-entry="{{ json_encode(['id' => $log->id, 'label' => $meta['label'].' · '.$log->time->format('M j, g:i A'), 'symptom_type' => $log->symptom_type, 'intensity' => $log->intensity, 'time' => $log->time->toIso8601String(), 'notes' => $log->notes]) }}">
                                                 <span class="lp-badge-icon"><svg class="lp-svg" viewBox="0 0 24 24" aria-hidden="true">{!! $meta['icon'] !!}</svg></span>
                                                 <div>
                                                     <div class="st-entry-title">
@@ -255,7 +222,13 @@
                                                         </div>
                                                     @endif
                                                 </div>
-                                                <time datetime="{{ $log->time->toIso8601String() }}" title="{{ $log->time->format('M d, Y g:i A') }}">{{ $log->time->format('g:i A') }}</time>
+                                                <div class="lp-entry-side">
+                                                    <time datetime="{{ $log->time->toIso8601String() }}" title="{{ $log->time->format('M d, Y g:i A') }}">{{ $log->time->format('g:i A') }}</time>
+                                                    <div class="lp-entry-actions">
+                                                        <button class="lp-icon-btn" type="button" data-edit aria-label="Edit {{ $meta['label'] }} at {{ $log->time->format('g:i A') }}" title="Edit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
+                                                        <button class="lp-icon-btn is-danger" type="button" data-delete aria-label="Delete {{ $meta['label'] }} at {{ $log->time->format('g:i A') }}" title="Delete"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg></button>
+                                                    </div>
+                                                </div>
                                             </div>
                                         @endforeach
                                     </div>
@@ -336,7 +309,7 @@
             range.value = level;
             intensityValue.textContent = level;
             intensityLabel.textContent = label;
-            intensityBox.className = `st-intensity lp-tone-${tone}`;
+            intensityBox.className = `lp-meter lp-tone-${tone}`;
             range.setAttribute('aria-valuetext', `${level} out of 10, ${label}`);
             scaleButtons.forEach((button) => button.classList.toggle('is-active', Number(button.dataset.level) === level));
             intensityCare.classList.toggle('is-on', level >= 8);
@@ -397,6 +370,40 @@
         });
         updateProgress();
 
+        const entryActions = window.createEntryActions({
+            form,
+            endpoint: '/api/symptom-log',
+            token,
+            noun: 'symptom entry',
+            submitLabel,
+            createText: submitText,
+            updateText: 'Update this entry',
+            onStatus: setStatus,
+            fill: (entry) => {
+                clearErrors();
+                const type = form.querySelector(`input[name="symptom_type"][value="${entry.symptom_type}"]`);
+                if (type) { type.checked = true; }
+                selectedType = type ? type.value : null;
+                setIntensity(Number(entry.intensity));
+                timeInput.value = toLocalInputValue(new Date(entry.time));
+                presets.forEach((item) => item.classList.remove('is-active'));
+                notesInput.value = entry.notes ?? '';
+                notesInput.dispatchEvent(new Event('input', { bubbles: true }));
+            },
+            reset: () => {
+                form.reset();
+                clearErrors();
+                selectedType = null;
+                setIntensity(5);
+                intensityTouched = false;
+                timeInput.value = toLocalInputValue(new Date());
+                presets.forEach((item) => item.classList.toggle('is-active', item.dataset.minutesAgo === '0'));
+                notesInput.dispatchEvent(new Event('input', { bubbles: true }));
+                status.className = 'lp-status';
+                updateProgress();
+            },
+        });
+
         form.addEventListener('submit', async (event) => {
             event.preventDefault();
             clearErrors();
@@ -418,9 +425,11 @@
             submitLabel.textContent = 'Saving…';
             status.className = 'lp-status';
 
+            const target = entryActions.request();
+            const isUpdate = entryActions.isEditing();
             try {
-                const response = await fetch('/api/symptom-log', {
-                    method: 'POST',
+                const response = await fetch(target.url, {
+                    method: target.method,
                     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify(data),
                 });
@@ -432,12 +441,14 @@
                 submit.classList.remove('is-loading');
                 submit.classList.add('is-success');
                 submitLabel.textContent = 'Saved';
-                setStatus('success', 'Your symptom was added to your timeline and your insight was refreshed. Updating your history…');
+                setStatus('success', isUpdate
+                    ? 'Your symptom entry was updated and your insight was refreshed. Updating your history…'
+                    : 'Your symptom was added to your timeline and your insight was refreshed. Updating your history…');
                 setTimeout(() => window.location.reload(), 900);
             } catch (error) {
                 submit.disabled = false;
                 submit.classList.remove('is-loading');
-                submitLabel.textContent = submitText;
+                submitLabel.textContent = isUpdate ? 'Update this entry' : submitText;
                 setStatus('error', error.message);
             }
         });

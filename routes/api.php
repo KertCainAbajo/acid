@@ -5,10 +5,8 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\PatientController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('')->group(function () {
-    Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/login', [AuthController::class, 'login']);
-});
+Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:register');
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -17,6 +15,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/food-log', [PatientController::class, 'storeFood']);
         Route::post('/symptom-log', [PatientController::class, 'storeSymptom']);
         Route::post('/sleep-log', [PatientController::class, 'storeSleep']);
+
+        // Corrections: patients can fix or remove their own entries.
+        Route::put('/food-log/{foodLog}', [PatientController::class, 'updateFood']);
+        Route::delete('/food-log/{foodLog}', [PatientController::class, 'destroyFood']);
+        Route::put('/symptom-log/{symptomLog}', [PatientController::class, 'updateSymptom']);
+        Route::delete('/symptom-log/{symptomLog}', [PatientController::class, 'destroySymptom']);
+        Route::put('/sleep-log/{sleepLog}', [PatientController::class, 'updateSleep']);
+        Route::delete('/sleep-log/{sleepLog}', [PatientController::class, 'destroySleep']);
         Route::get('/insights', [PatientController::class, 'insights']);
         Route::get('/recommendations', [PatientController::class, 'recommendations']);
         Route::get('/history', [PatientController::class, 'history']);

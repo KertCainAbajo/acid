@@ -4,6 +4,7 @@ namespace Tests\Feature\Api;
 
 use App\Models\FoodCategory;
 use App\Models\FoodLog;
+use App\Models\SleepLog;
 use App\Models\SymptomLog;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -169,6 +170,28 @@ class AcidRefluxApiTest extends TestCase
         $response->assertViewHas('typeBreakdown', ['heartburn' => 1, 'bloating' => 1, 'pain' => 0]);
         $response->assertViewHas('mealsBeforeSymptom', fn (array $meals): bool => $meals[$todaySymptom->id] === ['Coffee'] && $meals[$earlierSymptom->id] === []);
         $response->assertSee('Symptom Tracker');
+    }
+
+    public function test_sleep_page_summarises_only_the_patients_last_seven_nights(): void
+    {
+        $this->travelTo('2026-10-09 15:00:00');
+        $patient = User::factory()->create();
+        $otherPatient = User::factory()->create();
+        SleepLog::create(['user_id' => $patient->id, 'sleep_hours' => 5, 'sleep_quality' => 2, 'stress_level' => 8, 'logged_on' => '2026-10-09']);
+        SleepLog::create(['user_id' => $patient->id, 'sleep_hours' => 8, 'sleep_quality' => 4, 'stress_level' => 3, 'logged_on' => '2026-10-03']);
+        SleepLog::create(['user_id' => $patient->id, 'sleep_hours' => 10, 'sleep_quality' => 5, 'stress_level' => 1, 'logged_on' => '2026-10-02']);
+        SleepLog::create(['user_id' => $otherPatient->id, 'sleep_hours' => 3, 'sleep_quality' => 1, 'stress_level' => 10, 'logged_on' => '2026-10-08']);
+
+        $response = $this->actingAs($patient)->get('/sleep-stress');
+
+        $response->assertViewHas('averageHours', 6.5);
+        $response->assertViewHas('averageQuality', 3.0);
+        $response->assertViewHas('averageStress', 5.5);
+        $response->assertViewHas('weeklySleep', fn (array $nights): bool => count($nights) === 7
+            && $nights[0]['date'] === 'Oct 3' && $nights[0]['hours'] === 8.0
+            && $nights[5]['hours'] === null
+            && $nights[6]['isToday'] && $nights[6]['stress'] === 8);
+        $response->assertSee('Sleep &amp; Stress', false);
     }
 
     public function test_authenticated_patient_can_open_each_patient_workspace_section(): void

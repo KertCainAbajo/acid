@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\FoodLog;
+use App\Models\SleepLog;
 use App\Models\SymptomLog;
 use Carbon\CarbonImmutable;
 use Illuminate\View\View;
@@ -74,18 +75,33 @@ class LogPageController extends Controller
 
     public function sleep(): View
     {
-        return $this->page('sleep', 'Sleep & Stress');
-    }
-
-    private function page(string $type, string $title): View
-    {
         $user = request()->user();
-        $recentLogs = match ($type) {
-            'food' => $user->foodLogs()->latest('time')->limit(8)->get(),
-            'symptom' => $user->symptomLogs()->latest('time')->limit(8)->get(),
-            default => $user->sleepLogs()->latest('logged_on')->limit(8)->get(),
-        };
+        $today = CarbonImmutable::today();
+        $weekStart = $today->subDays(6);
+        $weekLogs = $user->sleepLogs()->whereDate('logged_on', '>=', $weekStart->toDateString())->get();
+        $average = fn (string $column): ?float => $weekLogs->isEmpty() ? null : round((float) $weekLogs->avg($column), 1);
 
-        return view('logs.create', compact('type', 'title', 'recentLogs'));
+        return view('logs.sleep', [
+            'title' => 'Sleep & Stress',
+            'recentLogs' => $user->sleepLogs()->latest('logged_on')->limit(14)->get(),
+            'loggedDates' => $user->sleepLogs()->whereDate('logged_on', '>=', $today->subDays(60)->toDateString())
+                ->pluck('logged_on')->map(fn ($date): string => $date->toDateString())->values()->all(),
+            'averageHours' => $average('sleep_hours'),
+            'averageQuality' => $average('sleep_quality'),
+            'averageStress' => $average('stress_level'),
+            'weeklySleep' => collect(range(0, 6))->map(function (int $offset) use ($weekStart, $weekLogs): array {
+                $day = $weekStart->addDays($offset);
+                $entry = $weekLogs->first(fn (SleepLog $log): bool => $log->logged_on->isSameDay($day));
+
+                return [
+                    'label' => $day->format('D'),
+                    'date' => $day->format('M j'),
+                    'isToday' => $day->isToday(),
+                    'hours' => $entry?->sleep_hours,
+                    'quality' => $entry?->sleep_quality,
+                    'stress' => $entry?->stress_level,
+                ];
+            })->all(),
+        ]);
     }
 }

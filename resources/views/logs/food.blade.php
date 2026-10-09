@@ -14,6 +14,7 @@
     $topCategory = $weekCount ? array_search(max($categoryBreakdown), $categoryBreakdown, true) : null;
 @endphp
 @include('logs.partials.styles')
+@include('logs.partials.entry-actions')
 
 <div class="shell">
     @include('partials.topbar')
@@ -150,13 +151,19 @@
                                         <h3>{{ $day }} <span>{{ $logs->count() }} meal{{ $logs->count() === 1 ? '' : 's' }}</span></h3>
                                         @foreach ($logs as $log)
                                             @php($meta = $categoryMeta[$log->category] ?? $categoryMeta['other'])
-                                            <div class="lp-meal lp-tone-{{ $meta['tone'] }}">
+                                            <div class="lp-meal lp-entry lp-tone-{{ $meta['tone'] }}" data-entry="{{ json_encode(['id' => $log->id, 'label' => $log->food_name, 'food_name' => $log->food_name, 'category' => $log->category, 'time' => $log->time->toIso8601String(), 'notes' => $log->notes]) }}">
                                                 <span class="lp-badge-icon"><svg class="lp-svg" viewBox="0 0 24 24" aria-hidden="true">{!! $meta['icon'] !!}</svg></span>
                                                 <div>
                                                     <strong>{{ $log->food_name }}@if ($log->is($recentLogs->first()))<span class="lp-latest" style="display:inline">Latest</span>@endif</strong>
                                                     <span>{{ $meta['label'] }}{{ $log->notes ? ' · '.$log->notes : '' }}</span>
                                                 </div>
-                                                <time datetime="{{ $log->time->toIso8601String() }}" title="{{ $log->time->format('M d, Y g:i A') }}">{{ $log->time->format('g:i A') }}</time>
+                                                <div class="lp-entry-side">
+                                                    <time datetime="{{ $log->time->toIso8601String() }}" title="{{ $log->time->format('M d, Y g:i A') }}">{{ $log->time->format('g:i A') }}</time>
+                                                    <div class="lp-entry-actions">
+                                                        <button class="lp-icon-btn" type="button" data-edit aria-label="Edit {{ $log->food_name }}" title="Edit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
+                                                        <button class="lp-icon-btn is-danger" type="button" data-delete aria-label="Delete {{ $log->food_name }}" title="Delete"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg></button>
+                                                    </div>
+                                                </div>
                                             </div>
                                         @endforeach
                                     </div>
@@ -264,6 +271,40 @@
         });
         updateProgress();
 
+        const createText = 'Save meal to my timeline';
+        const entryActions = window.createEntryActions({
+            form,
+            endpoint: '/api/food-log',
+            token,
+            noun: 'meal',
+            submitLabel,
+            createText,
+            updateText: 'Update this meal',
+            onStatus: setStatus,
+            fill: (entry) => {
+                clearErrors();
+                foodInput.value = entry.food_name;
+                const category = form.querySelector(`input[name="category"][value="${entry.category}"]`);
+                if (category) { category.checked = true; }
+                selectedCategory = category ? category.value : null;
+                timeInput.value = toLocalInputValue(new Date(entry.time));
+                presets.forEach((item) => item.classList.remove('is-active'));
+                notesInput.value = entry.notes ?? '';
+                notesCount.textContent = `${notesInput.value.length} / 2000`;
+                updateProgress();
+            },
+            reset: () => {
+                form.reset();
+                clearErrors();
+                selectedCategory = null;
+                timeInput.value = toLocalInputValue(new Date());
+                presets.forEach((item) => item.classList.toggle('is-active', item.dataset.minutesAgo === '0'));
+                notesCount.textContent = '0 / 2000';
+                status.className = 'lp-status';
+                updateProgress();
+            },
+        });
+
         form.addEventListener('submit', async (event) => {
             event.preventDefault();
             clearErrors();
@@ -286,9 +327,11 @@
             submitLabel.textContent = 'Saving…';
             status.className = 'lp-status';
 
+            const target = entryActions.request();
+            const isUpdate = entryActions.isEditing();
             try {
-                const response = await fetch('/api/food-log', {
-                    method: 'POST',
+                const response = await fetch(target.url, {
+                    method: target.method,
                     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify(data),
                 });
@@ -300,12 +343,14 @@
                 submit.classList.remove('is-loading');
                 submit.classList.add('is-success');
                 submitLabel.textContent = 'Saved';
-                setStatus('success', `“${payload.data?.food_name ?? data.food_name}” was added to your timeline. Updating your history…`);
+                setStatus('success', isUpdate
+                    ? `“${payload.data?.food_name ?? data.food_name}” was updated. Updating your history…`
+                    : `“${payload.data?.food_name ?? data.food_name}” was added to your timeline. Updating your history…`);
                 setTimeout(() => window.location.reload(), 900);
             } catch (error) {
                 submit.disabled = false;
                 submit.classList.remove('is-loading');
-                submitLabel.textContent = 'Save meal to my timeline';
+                submitLabel.textContent = isUpdate ? 'Update this meal' : createText;
                 setStatus('error', error.message);
             }
         });

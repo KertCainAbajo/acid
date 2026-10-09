@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\DashboardTokenService;
+use App\Services\SystemLogService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,6 +14,11 @@ use Laravel\Socialite\Facades\Socialite;
 
 class WebAuthController extends Controller
 {
+    public function __construct(
+        private readonly DashboardTokenService $dashboardTokens,
+        private readonly SystemLogService $systemLogService,
+    ) {}
+
     public function login(Request $request): RedirectResponse
     {
         $credentials = $request->validate([
@@ -31,7 +38,7 @@ class WebAuthController extends Controller
 
         Auth::login($user, $request->boolean('remember'));
         $request->session()->regenerate();
-        $this->storeDashboardToken($request, $user);
+        $this->systemLogService->record($request, 'user_logged_in', $user, ['channel' => 'web']);
 
         return $user->isAdmin()
             ? redirect()->route('admin.dashboard')
@@ -54,13 +61,15 @@ class WebAuthController extends Controller
 
         Auth::login($user);
         $request->session()->regenerate();
-        $this->storeDashboardToken($request, $user);
+        $this->systemLogService->record($request, 'user_registered', $user, ['channel' => 'web']);
 
         return redirect()->route('dashboard');
     }
 
     public function logout(Request $request): RedirectResponse
     {
+        $this->systemLogService->record($request, 'user_logged_out', $request->user(), ['channel' => 'web']);
+        $this->dashboardTokens->revoke($request);
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
@@ -85,8 +94,13 @@ class WebAuthController extends Controller
             return redirect()->route('login')->withErrors(['email' => 'Google sign-in could not be completed. Please try again.']);
         }
 
+        $email = $googleUser->getEmail();
+        if (! $email || ($googleUser->getRaw()['email_verified'] ?? true) === false) {
+            return redirect()->route('login')->withErrors(['email' => 'Your Google account must have a verified email address.']);
+        }
+
         $user = User::firstOrCreate(
-            ['email' => $googleUser->getEmail()],
+            ['email' => $email],
             [
                 'name' => $googleUser->getName() ?: 'Google Patient',
                 'password' => Hash::make(Str::random(48)),
@@ -101,15 +115,10 @@ class WebAuthController extends Controller
 
         Auth::login($user, true);
         $request->session()->regenerate();
-        $this->storeDashboardToken($request, $user);
+        $this->systemLogService->record($request, $user->wasRecentlyCreated ? 'user_registered' : 'user_logged_in', $user, ['channel' => 'google']);
 
         return $user->isAdmin()
             ? redirect()->route('admin.dashboard')
             : redirect()->route('dashboard');
-    }
-
-    private function storeDashboardToken(Request $request, User $user): void
-    {
-        $request->session()->put('api_token', $user->createToken('web-dashboard')->plainTextToken);
     }
 }

@@ -4,6 +4,7 @@ namespace Tests\Feature\Api;
 
 use App\Models\FoodCategory;
 use App\Models\FoodLog;
+use App\Models\SymptomLog;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
@@ -104,6 +105,70 @@ class AcidRefluxApiTest extends TestCase
             ->assertOk()
             ->assertSee('Dashboard')
             ->assertSee('AI Pattern Insight');
+    }
+
+    public function test_dashboard_weekly_activity_counts_only_the_patients_last_seven_days(): void
+    {
+        $this->travelTo('2026-10-09 15:00:00');
+        $patient = User::factory()->create();
+        $otherPatient = User::factory()->create();
+        FoodLog::create(['user_id' => $patient->id, 'food_name' => 'Coffee', 'category' => 'acidic', 'time' => '2026-10-09 08:00:00']);
+        FoodLog::create(['user_id' => $patient->id, 'food_name' => 'Pizza', 'category' => 'oily', 'time' => '2026-10-09 12:00:00']);
+        FoodLog::create(['user_id' => $patient->id, 'food_name' => 'Old meal', 'category' => 'oily', 'time' => '2026-10-02 12:00:00']);
+        FoodLog::create(['user_id' => $otherPatient->id, 'food_name' => 'Not mine', 'category' => 'oily', 'time' => '2026-10-09 09:00:00']);
+        SymptomLog::create(['user_id' => $patient->id, 'symptom_type' => 'heartburn', 'intensity' => 4, 'time' => '2026-10-03 21:00:00']);
+        SymptomLog::create(['user_id' => $patient->id, 'symptom_type' => 'pain', 'intensity' => 8, 'time' => '2026-10-03 23:00:00']);
+
+        $response = $this->actingAs($patient)->get('/dashboard');
+
+        $response->assertViewHas('weeklyAverageIntensity', 6.0);
+        $response->assertViewHas('weeklyActivity', function (array $days): bool {
+            return count($days) === 7
+                && $days[0]['date'] === 'Oct 3' && $days[0]['foods'] === 0 && $days[0]['symptoms'] === 2 && $days[0]['maxIntensity'] === 8
+                && $days[6]['date'] === 'Oct 9' && $days[6]['isToday'] && $days[6]['foods'] === 2 && $days[6]['symptoms'] === 0;
+        });
+    }
+
+    public function test_food_intake_page_summarises_only_the_patients_last_seven_days(): void
+    {
+        $this->travelTo('2026-10-09 15:00:00');
+        $patient = User::factory()->create();
+        $otherPatient = User::factory()->create();
+        FoodLog::create(['user_id' => $patient->id, 'food_name' => 'Orange juice', 'category' => 'acidic', 'time' => '2026-10-09 08:00:00']);
+        FoodLog::create(['user_id' => $patient->id, 'food_name' => 'Lemon tea', 'category' => 'acidic', 'time' => '2026-10-05 10:00:00']);
+        FoodLog::create(['user_id' => $patient->id, 'food_name' => 'Fries', 'category' => 'oily', 'time' => '2026-10-03 12:00:00']);
+        FoodLog::create(['user_id' => $patient->id, 'food_name' => 'Old curry', 'category' => 'spicy', 'time' => '2026-10-02 12:00:00']);
+        FoodLog::create(['user_id' => $otherPatient->id, 'food_name' => 'Not mine', 'category' => 'dairy', 'time' => '2026-10-09 09:00:00']);
+
+        $response = $this->actingAs($patient)->get('/food-log');
+
+        $response->assertViewHas('todayCount', 1);
+        $response->assertViewHas('weekCount', 3);
+        $response->assertViewHas('categoryBreakdown', ['acidic' => 2, 'oily' => 1, 'spicy' => 0, 'dairy' => 0, 'other' => 0]);
+        $response->assertSee('Orange juice');
+        $response->assertDontSee('Not mine');
+    }
+
+    public function test_symptom_tracker_summarises_the_week_and_links_meals_from_the_six_hours_before(): void
+    {
+        $this->travelTo('2026-10-09 15:00:00');
+        $patient = User::factory()->create();
+        $otherPatient = User::factory()->create();
+        FoodLog::create(['user_id' => $patient->id, 'food_name' => 'Coffee', 'category' => 'acidic', 'time' => '2026-10-09 08:30:00']);
+        FoodLog::create(['user_id' => $patient->id, 'food_name' => 'Breakfast burrito', 'category' => 'spicy', 'time' => '2026-10-09 05:59:00']);
+        FoodLog::create(['user_id' => $otherPatient->id, 'food_name' => 'Not my pizza', 'category' => 'oily', 'time' => '2026-10-09 11:00:00']);
+        $todaySymptom = SymptomLog::create(['user_id' => $patient->id, 'symptom_type' => 'heartburn', 'intensity' => 7, 'time' => '2026-10-09 12:00:00']);
+        $earlierSymptom = SymptomLog::create(['user_id' => $patient->id, 'symptom_type' => 'bloating', 'intensity' => 4, 'time' => '2026-10-05 20:00:00']);
+        SymptomLog::create(['user_id' => $patient->id, 'symptom_type' => 'pain', 'intensity' => 9, 'time' => '2026-10-02 20:00:00']);
+
+        $response = $this->actingAs($patient)->get('/symptom-log');
+
+        $response->assertViewHas('todayCount', 1);
+        $response->assertViewHas('weekCount', 2);
+        $response->assertViewHas('weekAverageIntensity', 5.5);
+        $response->assertViewHas('typeBreakdown', ['heartburn' => 1, 'bloating' => 1, 'pain' => 0]);
+        $response->assertViewHas('mealsBeforeSymptom', fn (array $meals): bool => $meals[$todaySymptom->id] === ['Coffee'] && $meals[$earlierSymptom->id] === []);
+        $response->assertSee('Symptom Tracker');
     }
 
     public function test_authenticated_patient_can_open_each_patient_workspace_section(): void

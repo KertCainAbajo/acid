@@ -10,6 +10,13 @@ class FoodLog extends Model
 {
     use HasFactory;
 
+    /**
+     * The food categories a patient can assign to a meal.
+     *
+     * @var list<string>
+     */
+    public const CATEGORIES = ['acidic', 'oily', 'spicy', 'dairy', 'other'];
+
     protected $fillable = ['user_id', 'food_name', 'category', 'time', 'notes'];
 
     protected function casts(): array

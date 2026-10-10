@@ -40,7 +40,7 @@
     .pt-segment.is-active { border-color:var(--tone); box-shadow:0 0 0 3px var(--tone-mid); }
     .pt-segment .lp-badge-icon { width:42px; height:42px; border-radius:13px; }
     .pt-segment strong { display:block; font-size:24px; font-weight:800; line-height:1.1; letter-spacing:-.03em; }
-    .pt-segment span { display:block; color:#334155; font-size:13px; font-weight:700; }
+    .pt-segment div > span { display:block; color:#334155; font-size:13px; font-weight:700; }
     .pt-segment small { display:block; color:#94a3b8; font-size:11.5px; }
     .pt-toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-bottom:6px; }
     .pt-toolbar .au-search { flex:1 1 280px; }

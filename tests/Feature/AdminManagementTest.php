@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\FoodCategory;
 use App\Models\FoodLog;
+use App\Models\SymptomLog;
 use App\Models\SystemLog;
 use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
@@ -121,6 +122,30 @@ class AdminManagementTest extends TestCase
 
         $this->assertModelMissing($category);
         $this->assertSame(['food_category_created', 'food_category_updated', 'food_category_deleted'], SystemLog::where('actor_id', $admin->id)->orderBy('id')->pluck('action')->all());
+    }
+
+    public function test_food_guidance_suggests_foods_from_anonymised_patient_data(): void
+    {
+        $this->travelTo('2026-10-10 20:00:00');
+        FoodCategory::create(['name' => 'Coffee', 'type' => 'avoid']);
+        [$first, $second] = User::factory()->count(2)->create();
+        foreach ([$first, $second] as $patient) {
+            FoodLog::create(['user_id' => $patient->id, 'food_name' => 'Pizza', 'category' => 'oily', 'time' => '2026-10-09 12:00:00']);
+            SymptomLog::create(['user_id' => $patient->id, 'symptom_type' => 'heartburn', 'intensity' => 6, 'time' => '2026-10-09 14:00:00']);
+            FoodLog::create(['user_id' => $patient->id, 'food_name' => 'Black coffee', 'category' => 'acidic', 'time' => '2026-10-08 08:00:00']);
+            SymptomLog::create(['user_id' => $patient->id, 'symptom_type' => 'heartburn', 'intensity' => 5, 'time' => '2026-10-08 09:00:00']);
+        }
+        foreach (range(1, 3) as $day) {
+            FoodLog::create(['user_id' => $first->id, 'food_name' => 'Rice porridge', 'category' => 'other', 'time' => "2026-10-0{$day} 19:00:00"]);
+        }
+
+        $response = $this->actingAs($this->admin())->get('/admin/food-guidance');
+        $response->assertOk();
+
+        $response->assertViewHas('suggestedTriggers', fn ($suggestions): bool => $suggestions->pluck('name')->all() === ['Pizza']);
+        $response->assertViewHas('suggestedGentle', fn ($suggestions): bool => $suggestions->pluck('name')->all() === ['Rice porridge']);
+        $response->assertViewHas('avoidFoods', fn ($foods): bool => $foods->first()['evidence']['triggerPatients'] === 2);
+        $response->assertSee('Confirmed by patient data');
     }
 
     public function test_activity_log_can_be_filtered_and_exported(): void

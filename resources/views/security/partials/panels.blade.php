@@ -46,7 +46,7 @@
     @media (max-width:560px) { .sc-score { flex-direction:column; align-items:flex-start; } }
 </style>
 
-<section class="lp-panel lp-tone-{{ $scoreTone }}">
+<section class="lp-panel lp-tone-{{ $scoreTone }}" id="security-score">
     <div class="lp-panel-head"><div><h2>Your security score</h2><p>How well this account is protected right now</p></div></div>
     <div class="sc-score">
         <div class="sc-ring" role="img" aria-label="Security score {{ $score }} percent">
@@ -144,7 +144,7 @@
     </section>
 </div>
 
-<section class="lp-panel">
+<section class="lp-panel" id="sign-in-history">
     <div class="lp-panel-head"><div><h2>Sign-in history</h2><p>Recent sign-ins and security events for this account. If anything looks unfamiliar, change your password.</p></div></div>
     @forelse ($history as $event)
         @php(['label' => $label, 'tone' => $tone, 'icon' => $icon] = \App\Support\ActivityPresenter::describe($event->action))

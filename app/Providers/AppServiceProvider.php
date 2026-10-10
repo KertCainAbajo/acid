@@ -2,9 +2,11 @@
 
 namespace App\Providers;
 
+use App\View\Composers\AdminSidebarComposer;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
@@ -25,6 +27,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureRateLimiting();
+        View::composer('admin.partials.sidebar', AdminSidebarComposer::class);
     }
 
     /**

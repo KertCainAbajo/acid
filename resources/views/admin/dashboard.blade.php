@@ -26,19 +26,6 @@
         $segments[] = ['key' => $key, 'label' => $label, 'color' => $color, 'share' => $share, 'offset' => $offset, 'count' => $riskDistribution[$key]];
         $offset += $share;
     }
-    $actionMeta = function (string $action): array {
-        return match (true) {
-            str_starts_with($action, 'user_logged_in') => ['Signed in', 'green', '<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/>'],
-            str_starts_with($action, 'user_logged_out') => ['Signed out', 'slate', '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>'],
-            str_starts_with($action, 'user_registered') => ['New account', 'sky', '<circle cx="9" cy="8" r="4"/><path d="M3 21a6 6 0 0 1 12 0M19 8v6M16 11h6"/>'],
-            str_starts_with($action, 'food_log') => [str($action)->after('food_log_')->ucfirst().' food entry', 'orange', '<path d="M7 2v20"/><path d="M4 2v6a3 3 0 0 0 6 0V2"/><path d="M17 22V2c-2.2 0-4 2.7-4 6v5h4"/>'],
-            str_starts_with($action, 'symptom_log') => [str($action)->after('symptom_log_')->ucfirst().' symptom', 'red', '<path d="M3 12h4l2-5 4 10 2-5h6"/>'],
-            str_starts_with($action, 'sleep_log') => [str($action)->after('sleep_log_')->ucfirst().' sleep entry', 'violet', '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/>'],
-            str_starts_with($action, 'account_') || str_starts_with($action, 'user_account') => [str($action)->replace('_', ' ')->ucfirst(), 'amber', '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>'],
-            default => [str($action)->replace('_', ' ')->ucfirst(), 'slate', '<circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/>'],
-        };
-    };
-    $riskTone = ['low' => 'green', 'medium' => 'amber', 'high' => 'red'];
 @endphp
 @include('logs.partials.styles')
 <style>
@@ -226,11 +213,10 @@
             @else
                 <div style="overflow-x:auto">
                     <table class="ad-table">
-                        <thead><tr><th>Patient</th><th class="ad-hide-sm">Entries</th><th>Risk</th><th class="ad-hide-sm">Last active</th><th>Status</th></tr></thead>
+                        <thead><tr><th>Patient</th><th class="ad-hide-sm">Entries</th><th class="ad-hide-sm">Last active</th><th>Status</th></tr></thead>
                         <tbody>
                             @foreach ($recentPatients as $patient)
                                 @php($lastActive = collect([$patient->food_logs_max_time, $patient->symptom_logs_max_time])->filter()->max())
-                                @php($risk = $patientRisk->get($patient->id))
                                 <tr>
                                     <td><div class="ad-person"><span class="ad-avatar">{{ strtoupper(substr($patient->name, 0, 1)) }}</span><div><strong>{{ $patient->name }}</strong><small>{{ $patient->email }}</small></div></div></td>
                                     <td class="ad-hide-sm"><div class="ad-counts" title="Food · Symptoms · Sleep">
@@ -238,7 +224,6 @@
                                         <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l2-5 4 10 2-5h6"/></svg>{{ $patient->symptom_logs_count }}</span>
                                         <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>{{ $patient->sleep_logs_count }}</span>
                                     </div></td>
-                                    <td>@if ($risk)<span class="ad-pill lp-tone-{{ $riskTone[$risk] ?? 'slate' }}"><i></i>{{ ucfirst($risk) }}</span>@else<span class="ad-muted">—</span>@endif</td>
                                     <td class="ad-hide-sm"><span class="ad-muted">{{ $lastActive ? \Illuminate\Support\Carbon::parse($lastActive)->diffForHumans() : 'Never' }}</span></td>
                                     <td><span class="ad-pill lp-tone-{{ $patient->is_active ? 'green' : 'red' }}"><i></i>{{ $patient->is_active ? 'Active' : 'Inactive' }}</span></td>
                                 </tr>
@@ -256,7 +241,7 @@
             @else
                 <div class="ad-feed">
                     @foreach ($recentActivity as $event)
-                        @php([$label, $tone, $icon] = $actionMeta($event->action))
+                        @php(['label' => $label, 'tone' => $tone, 'icon' => $icon] = \App\Support\ActivityPresenter::describe($event->action))
                         <div class="ad-feed-row lp-tone-{{ $tone }}">
                             <span class="lp-badge-icon"><svg class="lp-svg" style="width:16px;height:16px" viewBox="0 0 24 24" aria-hidden="true">{!! $icon !!}</svg></span>
                             <div><strong>{{ $label }}</strong><small>{{ $event->actor?->name ?? 'System' }}{{ $event->actor?->role === 'admin' ? ' · admin' : '' }}</small></div>

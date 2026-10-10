@@ -1,7 +1,10 @@
 <?php
 
 use App\Http\Controllers\AdminAccountController;
+use App\Http\Controllers\AdminActivityController;
 use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\AdminFoodCategoryController;
+use App\Http\Controllers\AdminPatientController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LogPageController;
 use App\Http\Controllers\LogSearchController;
@@ -24,8 +27,16 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', AdminDashboardController::class)->name('dashboard');
-        Route::get('/patients', [AdminDashboardController::class, 'patients'])->name('patients');
-        Route::get('/activity', [AdminDashboardController::class, 'activity'])->name('activity');
+        Route::get('/patients', [AdminPatientController::class, 'index'])->name('patients');
+        Route::get('/patients/export', [AdminPatientController::class, 'export'])->name('patients.export');
+        Route::patch('/patients/{patient}/status', [AdminPatientController::class, 'updateStatus'])->name('patients.status');
+        Route::delete('/patients/{patient}', [AdminPatientController::class, 'destroy'])->name('patients.destroy');
+        Route::get('/food-guidance', [AdminFoodCategoryController::class, 'index'])->name('food-guidance');
+        Route::post('/food-guidance', [AdminFoodCategoryController::class, 'store'])->name('food-guidance.store');
+        Route::put('/food-guidance/{foodCategory}', [AdminFoodCategoryController::class, 'update'])->name('food-guidance.update');
+        Route::delete('/food-guidance/{foodCategory}', [AdminFoodCategoryController::class, 'destroy'])->name('food-guidance.destroy');
+        Route::get('/activity', [AdminActivityController::class, 'index'])->name('activity');
+        Route::get('/activity/export', [AdminActivityController::class, 'export'])->name('activity.export');
         Route::get('/settings', [AdminAccountController::class, 'edit'])->name('settings');
         Route::put('/settings/profile', [AdminAccountController::class, 'updateProfile'])->name('settings.profile');
         Route::put('/settings/password', [AdminAccountController::class, 'updatePassword'])->middleware('throttle:6,1')->name('settings.password');

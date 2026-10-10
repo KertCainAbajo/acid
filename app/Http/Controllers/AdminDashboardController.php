@@ -88,7 +88,6 @@ class AdminDashboardController extends Controller
                 'high' => $latestInsights->where('risk_level', 'high')->count(),
                 'none' => max(0, $patientCount - $latestInsights->count()),
             ],
-            'patientRisk' => $latestInsights->pluck('risk_level', 'user_id'),
             'recentPatients' => $recentPatients,
             'recentActivity' => SystemLog::with('actor:id,name,role')->latest()->limit(8)->get(['id', 'actor_id', 'action', 'created_at']),
             'commonTriggers' => $monthFoods->groupBy('user_id')
@@ -103,26 +102,6 @@ class AdminDashboardController extends Controller
                 ->sortByDesc('associations')
                 ->take(5)
                 ->values(),
-        ]);
-    }
-
-    public function patients(): View
-    {
-        return view('admin.patients', [
-            'patients' => User::where('role', User::ROLE_PATIENT)
-                ->latest()
-                ->limit(100)
-                ->get(['id', 'name', 'email', 'is_active', 'created_at']),
-        ]);
-    }
-
-    public function activity(): View
-    {
-        return view('admin.activity', [
-            'activities' => SystemLog::with('actor:id,name,email')
-                ->latest()
-                ->limit(100)
-                ->get(['id', 'actor_id', 'action', 'target_type', 'target_id', 'created_at']),
         ]);
     }
 

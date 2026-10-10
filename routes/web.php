@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminAccountController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LogPageController;
@@ -25,6 +26,9 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::get('/dashboard', AdminDashboardController::class)->name('dashboard');
         Route::get('/patients', [AdminDashboardController::class, 'patients'])->name('patients');
         Route::get('/activity', [AdminDashboardController::class, 'activity'])->name('activity');
+        Route::get('/settings', [AdminAccountController::class, 'edit'])->name('settings');
+        Route::put('/settings/profile', [AdminAccountController::class, 'updateProfile'])->name('settings.profile');
+        Route::put('/settings/password', [AdminAccountController::class, 'updatePassword'])->middleware('throttle:6,1')->name('settings.password');
     });
     Route::middleware('role:patient')->group(function () {
         Route::get('/food-log', [LogPageController::class, 'food'])->name('food.log');

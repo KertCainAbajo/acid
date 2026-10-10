@@ -16,7 +16,21 @@ class ActivityPresenter
     {
         $entry = fn (string $prefix, string $noun): string => Str::ucfirst(Str::after($action, $prefix)).' '.$noun;
 
+        $shield = '<path d="M12 3 4 6v6c0 5 3.4 8.4 8 9 4.6-.6 8-4 8-9V6l-8-3Z"/>';
+        $lock = '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>';
+
         [$label, $tone, $icon] = match (true) {
+            $action === 'login_failed' => ['Failed sign-in', 'red', '<circle cx="12" cy="12" r="9"/><path d="m15 9-6 6M9 9l6 6"/>'],
+            $action === 'account_locked' => ['Account locked', 'red', $lock],
+            $action === 'account_unlocked' => ['Account unlocked', 'green', '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.9-1"/>'],
+            $action === 'new_device_sign_in' => ['New device sign-in', 'sky', '<rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/>'],
+            $action === 'session_timed_out' => ['Session timed out', 'slate', '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'],
+            $action === 'session_blocked' => ['Session blocked', 'red', $shield.'<path d="m9 9 6 6M15 9l-6 6"/>'],
+            $action === 'sessions_revoked' => ['Other sessions signed out', 'amber', '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>'],
+            $action === 'two_factor_enabled' => ['Two-factor turned on', 'green', $shield.'<path d="m9 12 2 2 4-4"/>'],
+            $action === 'two_factor_disabled' => ['Two-factor turned off', 'amber', $shield],
+            $action === 'recovery_code_used' => ['Recovery code used', 'amber', '<path d="M21 2l-2 2m-7.6 7.6a5.5 5.5 0 1 1-7.8 7.8 5.5 5.5 0 0 1 7.8-7.8Zm0 0L15.5 7.5"/>'],
+            $action === 'recovery_codes_regenerated' => ['Recovery codes renewed', 'amber', '<path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/>'],
             $action === 'user_logged_in' => ['Signed in', 'green', '<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/>'],
             $action === 'user_logged_out' => ['Signed out', 'slate', '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>'],
             $action === 'user_registered' => ['New account', 'sky', '<circle cx="9" cy="8" r="4"/><path d="M3 21a6 6 0 0 1 12 0M19 8v6M16 11h6"/>'],

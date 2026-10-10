@@ -18,6 +18,7 @@
         'entries' => ['tone' => 'orange', 'icon' => '<path d="M7 2v20"/><path d="M4 2v6a3 3 0 0 0 6 0V2"/><path d="M17 22V2c-2.2 0-4 2.7-4 6v5h4"/>'],
         'accounts' => ['tone' => 'amber', 'icon' => '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>'],
         'guidance' => ['tone' => 'violet', 'icon' => '<path d="M12 3c1.6 2.2 5 4.5 5 8.4A5 5 0 0 1 7 11.4C7 8.1 9.6 6 12 3Z"/>'],
+        'security' => ['tone' => 'red', 'icon' => '<path d="M12 3 4 6v6c0 5 3.4 8.4 8 9 4.6-.6 8-4 8-9V6l-8-3Z"/>'],
     ];
     $days = $activities->getCollection()->groupBy(fn ($activity): string => $activity->created_at->isToday() ? 'Today' : ($activity->created_at->isYesterday() ? 'Yesterday' : $activity->created_at->format('l, F j')));
     $topActorMax = max(1, (int) $topActors->max('total'));
@@ -34,7 +35,7 @@
     .ac-hero-stats { display:flex; gap:8px; }
     .ac-hero-stats span { flex:1; padding:8px 10px; border-radius:11px; color:#a7f3d0; background:#ffffff12; font-size:11px; }
     .ac-hero-stats b { display:block; color:#fff; font-size:16px; }
-    .ac-groups { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; }
+    .ac-groups { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:12px; }
     .ac-group { position:relative; display:flex; flex-direction:column; gap:8px; padding:14px; border:1px solid #fff; border-radius:18px; background:#ffffffd9; box-shadow:var(--shadow-soft); transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease; }
     .ac-group:hover { transform:translateY(-2px); box-shadow:0 1px 2px #0f172a0a,0 18px 32px -18px #0a5a4059; }
     .ac-group.is-active { border-color:var(--tone,#10b981); box-shadow:0 0 0 3px var(--tone-mid,#a7f3d0); }

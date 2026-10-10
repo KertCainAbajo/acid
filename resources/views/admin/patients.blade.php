@@ -306,7 +306,9 @@
         <input type="hidden" name="patient_name" id="delete-name-input" value="{{ old('patient_name') }}">
         <label for="confirm_email">Type <strong id="delete-email">{{ old('patient_email') }}</strong> to confirm</label>
         <input type="hidden" name="patient_email" id="delete-email-input" value="{{ old('patient_email') }}">
-        <input class="au-input" id="confirm_email" name="confirm_email" autocomplete="off" required @if ($deleteErrors->any()) aria-invalid="true" @endif>
+        <input class="au-input" id="confirm_email" name="confirm_email" autocomplete="off" required @if ($deleteErrors->has('confirm_email')) aria-invalid="true" @endif>
+        <label for="delete_current_password" style="margin-top:12px">Your admin password</label>
+        <input class="au-input" id="delete_current_password" name="current_password" type="password" autocomplete="current-password" required @if ($deleteErrors->has('current_password')) aria-invalid="true" @endif>
         @if ($deleteErrors->any())<p class="au-error">{{ $deleteErrors->first() }}</p>@endif
         <div class="au-modal-actions">
             <button class="au-btn" type="button" data-close-modal>Cancel</button>
@@ -327,7 +329,9 @@
         const confirmInput = $('confirm_email');
         const deleteSubmit = $('delete-submit');
         let expectedEmail = modal.dataset.expected;
-        const syncDelete = () => { deleteSubmit.disabled = confirmInput.value.trim() !== expectedEmail; };
+        const passwordInput = $('delete_current_password');
+        const syncDelete = () => { deleteSubmit.disabled = confirmInput.value.trim() !== expectedEmail || passwordInput.value === ''; };
+        passwordInput.addEventListener('input', () => syncDelete());
         const openDelete = ({ name, email, action }) => {
             expectedEmail = email;
             deleteForm.action = action;
@@ -336,12 +340,12 @@
             $('delete-name-input').value = name;
             $('delete-email').textContent = email;
             $('delete-email-input').value = email;
-            confirmInput.value = '';
+            confirmInput.value = ''; passwordInput.value = '';
             syncDelete();
             modal.classList.add('is-open');
             confirmInput.focus();
         };
-        const closeDelete = () => { modal.classList.remove('is-open'); confirmInput.value = ''; deleteSubmit.disabled = true; };
+        const closeDelete = () => { modal.classList.remove('is-open'); confirmInput.value = ''; passwordInput.value = ''; deleteSubmit.disabled = true; };
         confirmInput.addEventListener('input', syncDelete);
         modal.querySelector('[data-close-modal]').addEventListener('click', closeDelete);
         modal.addEventListener('click', (event) => { if (event.target === modal) { closeDelete(); } });

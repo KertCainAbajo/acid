@@ -38,6 +38,26 @@ class UserFactory extends Factory
     /**
      * Indicate that the model's email address should be unverified.
      */
+    /**
+     * An administrator who has completed two-factor setup, as every real admin must.
+     */
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => ['role' => User::ROLE_ADMIN])->withTwoFactor();
+    }
+
+    /**
+     * Two-factor authentication turned on with a known secret and recovery codes.
+     */
+    public function withTwoFactor(string $secret = 'JBSWY3DPEHPK3PXP'): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'two_factor_secret' => $secret,
+            'two_factor_confirmed_at' => now(),
+            'two_factor_recovery_codes' => ['AAAAA-11111', 'BBBBB-22222'],
+        ]);
+    }
+
     public function unverified(): static
     {
         return $this->state(fn (array $attributes) => [

@@ -5,10 +5,12 @@ use App\Http\Controllers\AdminActivityController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminFoodCategoryController;
 use App\Http\Controllers\AdminPatientController;
+use App\Http\Controllers\AdminSecurityController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LogPageController;
 use App\Http\Controllers\LogSearchController;
 use App\Http\Controllers\PatientSectionController;
+use App\Http\Controllers\SecurityController;
 use App\Http\Controllers\WebAuthController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -22,8 +24,19 @@ Route::post('/login', [WebAuthController::class, 'login'])->middleware('throttle
 Route::post('/register', [WebAuthController::class, 'register'])->middleware('throttle:register')->name('register.submit');
 Route::get('/auth/google/redirect', [WebAuthController::class, 'googleRedirect'])->name('google.redirect');
 Route::get('/auth/google/callback', [WebAuthController::class, 'googleCallback'])->name('google.callback');
+Route::get('/two-factor-challenge', [WebAuthController::class, 'showTwoFactorChallenge'])->name('two-factor.challenge');
+Route::post('/two-factor-challenge', [WebAuthController::class, 'verifyTwoFactorChallenge'])->middleware('throttle:6,1')->name('two-factor.verify');
 
-Route::middleware(['auth', 'active'])->group(function () {
+Route::middleware(['auth', 'active', 'secure.session'])->group(function () {
+    Route::prefix('security')->name('security.')->middleware('throttle:12,1')->group(function () {
+        Route::post('/two-factor', [SecurityController::class, 'enableTwoFactor'])->name('two-factor.enable');
+        Route::post('/two-factor/confirm', [SecurityController::class, 'confirmTwoFactor'])->name('two-factor.confirm');
+        Route::delete('/two-factor', [SecurityController::class, 'disableTwoFactor'])->name('two-factor.disable');
+        Route::post('/two-factor/recovery-codes', [SecurityController::class, 'regenerateRecoveryCodes'])->name('two-factor.recovery');
+        Route::post('/sessions/sign-out-others', [SecurityController::class, 'signOutOtherSessions'])->name('sessions.destroy');
+        Route::put('/password', [SecurityController::class, 'updatePassword'])->name('password');
+    });
+
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', AdminDashboardController::class)->name('dashboard');
@@ -40,6 +53,8 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::get('/settings', [AdminAccountController::class, 'edit'])->name('settings');
         Route::put('/settings/profile', [AdminAccountController::class, 'updateProfile'])->name('settings.profile');
         Route::put('/settings/password', [AdminAccountController::class, 'updatePassword'])->middleware('throttle:6,1')->name('settings.password');
+        Route::get('/security', [AdminSecurityController::class, 'index'])->name('security');
+        Route::post('/security/unlock/{user}', [AdminSecurityController::class, 'unlock'])->name('security.unlock');
     });
     Route::middleware('role:patient')->group(function () {
         Route::get('/food-log', [LogPageController::class, 'food'])->name('food.log');
@@ -51,6 +66,7 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::get('/health-history/export', [PatientSectionController::class, 'exportHistory'])->name('history.export');
         Route::get('/recommendations', [PatientSectionController::class, 'recommendations'])->name('recommendations');
         Route::get('/health-history', [PatientSectionController::class, 'history'])->name('history');
+        Route::get('/account/security', [SecurityController::class, 'show'])->name('security.show');
     });
     Route::post('/logout', [WebAuthController::class, 'logout'])->name('logout');
 });

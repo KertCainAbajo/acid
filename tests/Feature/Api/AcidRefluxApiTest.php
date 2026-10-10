@@ -73,7 +73,7 @@ class AcidRefluxApiTest extends TestCase
 
     public function test_admin_can_view_analytics_but_cannot_use_patient_routes(): void
     {
-        $admin = User::factory()->create(['role' => User::ROLE_ADMIN]);
+        $admin = User::factory()->admin()->create();
         FoodCategory::create(['name' => 'Test safe food', 'type' => 'safe']);
         Sanctum::actingAs($admin);
 

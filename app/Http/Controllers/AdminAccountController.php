@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\UpdateAccountPasswordRequest;
 use App\Http\Requests\UpdateAccountProfileRequest;
+use App\Services\AccountSecurityOverview;
 use App\Services\SystemLogService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
@@ -14,14 +15,15 @@ class AdminAccountController extends Controller
 {
     public function __construct(private readonly SystemLogService $systemLogService) {}
 
-    public function edit(): View
+    public function edit(AccountSecurityOverview $overview): View
     {
         $user = request()->user();
 
         return view('admin.settings', [
+            ...$overview->for(request()),
             'title' => 'Account settings',
             'user' => $user,
-            'passwordChangedAt' => $user->systemLogs()->where('action', 'account_password_changed')->latest()->value('created_at'),
+            'passwordChangedAt' => $user->password_changed_at ?? $user->systemLogs()->where('action', 'account_password_changed')->latest()->value('created_at'),
         ]);
     }
 
@@ -48,6 +50,7 @@ class AdminAccountController extends Controller
         $user = $request->user();
         $user->forceFill([
             'password' => $request->validated('password'),
+            'password_changed_at' => now(),
             'remember_token' => Str::random(60),
         ])->save();
 

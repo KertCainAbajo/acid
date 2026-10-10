@@ -21,6 +21,7 @@ class AdminActivityController extends Controller
         'entries' => ['label' => 'Patient entries', 'prefixes' => ['food_log_', 'symptom_log_', 'sleep_log_']],
         'accounts' => ['label' => 'Account changes', 'prefixes' => ['patient_', 'account_', 'user_account_']],
         'guidance' => ['label' => 'Food guidance', 'prefixes' => ['food_category_']],
+        'security' => ['label' => 'Security', 'prefixes' => ['login_failed', 'account_locked', 'account_unlocked', 'new_device_', 'session_', 'sessions_', 'two_factor_', 'recovery_code']],
     ];
 
     public function index(Request $request): View

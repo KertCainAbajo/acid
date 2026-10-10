@@ -68,7 +68,7 @@ class AuthenticationSecurityTest extends TestCase
 
     public function test_deactivating_a_patient_revokes_their_api_tokens(): void
     {
-        $admin = User::factory()->create(['role' => User::ROLE_ADMIN]);
+        $admin = User::factory()->admin()->create();
         $patient = User::factory()->create();
         $patient->createToken('mobile-app');
         Sanctum::actingAs($admin);
@@ -96,7 +96,7 @@ class AuthenticationSecurityTest extends TestCase
 
     public function test_admins_cannot_open_patient_only_pages(): void
     {
-        $admin = User::factory()->create(['role' => User::ROLE_ADMIN]);
+        $admin = User::factory()->admin()->create();
 
         $response = $this->actingAs($admin)->get('/food-log');
 

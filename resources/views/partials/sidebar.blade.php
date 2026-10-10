@@ -42,6 +42,16 @@
         </a>
     </nav>
 
+    @if (auth()->user()->isPatient())
+        <div class="side-label">Your account</div>
+        <nav class="sidebar-nav" aria-label="Account">
+            <a class="side-link {{ $activeSection === 'security' ? 'current' : '' }}" href="{{ route('security.show') }}">
+                <span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 6v6c0 5 3.4 8.4 8 9 4.6-.6 8-4 8-9V6l-8-3Z"></path><path d="m9 12 2 2 4-4"></path></svg></span>
+                <span class="side-copy"><strong>Account security</strong><small>{{ auth()->user()->hasTwoFactorEnabled() ? 'Two-factor is on' : 'Turn on two-factor' }}</small></span><span class="side-arrow">→</span>
+            </a>
+        </nav>
+    @endif
+
     @if(auth()->user()->isAdmin())
         <div class="side-label">Admin module</div>
         <nav class="sidebar-nav" aria-label="Administration">

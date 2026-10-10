@@ -16,7 +16,7 @@ class AdminManagementTest extends TestCase
 
     private function admin(): User
     {
-        return User::factory()->create(['role' => User::ROLE_ADMIN]);
+        return User::factory()->admin()->create();
     }
 
     public function test_admin_can_search_and_filter_patients(): void
@@ -78,7 +78,7 @@ class AdminManagementTest extends TestCase
             ->assertSessionHasErrorsIn('delete', ['confirm_email']);
         $this->assertModelExists($patient);
 
-        $this->actingAs($admin)->delete("/admin/patients/{$patient->id}", ['confirm_email' => 'remove-me@example.com'])
+        $this->actingAs($admin)->delete("/admin/patients/{$patient->id}", ['confirm_email' => 'remove-me@example.com', 'current_password' => 'password'])
             ->assertRedirect(route('admin.patients'));
         $this->assertModelMissing($patient);
         $this->assertModelMissing($meal);
@@ -180,7 +180,7 @@ class AdminManagementTest extends TestCase
 
         $response = $this->actingAs($admin)->get('/admin/activity');
 
-        $response->assertViewHas('groupCounts', ['sign-ins' => 2, 'entries' => 1, 'accounts' => 1, 'guidance' => 0]);
+        $response->assertViewHas('groupCounts', ['sign-ins' => 2, 'entries' => 1, 'accounts' => 1, 'guidance' => 0, 'security' => 0]);
         $response->assertViewHas('security', ['signInsToday' => 1, 'newAccounts' => 1, 'accountChanges' => 1, 'uniqueIps' => 3]);
         $response->assertViewHas('topActors', fn ($actors): bool => $actors->first()->actor_id === $patient->id && (int) $actors->first()->total === 3);
         $response->assertSee('Google');

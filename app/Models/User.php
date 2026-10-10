@@ -13,7 +13,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
 #[Fillable(['name', 'email', 'password', 'role', 'is_active'])]
-#[Hidden(['password', 'remember_token'])]
+#[Hidden(['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
@@ -58,6 +58,32 @@ class User extends Authenticatable
         return $this->role === self::ROLE_PATIENT;
     }
 
+    public function hasTwoFactorEnabled(): bool
+    {
+        return $this->two_factor_secret !== null && $this->two_factor_confirmed_at !== null;
+    }
+
+    /**
+     * Administrators must protect their account with two-factor authentication.
+     */
+    public function mustUseTwoFactor(): bool
+    {
+        return $this->isAdmin();
+    }
+
+    public function isLocked(): bool
+    {
+        return $this->locked_until !== null && $this->locked_until->isFuture();
+    }
+
+    /**
+     * Minutes of inactivity before the web session is signed out.
+     */
+    public function idleTimeoutMinutes(): int
+    {
+        return $this->isAdmin() ? 15 : 60;
+    }
+
     /**
      * Get the attributes that should be cast.
      *
@@ -69,6 +95,11 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'two_factor_secret' => 'encrypted',
+            'two_factor_recovery_codes' => 'encrypted:array',
+            'two_factor_confirmed_at' => 'datetime',
+            'locked_until' => 'datetime',
+            'password_changed_at' => 'datetime',
         ];
     }
 }

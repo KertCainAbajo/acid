@@ -17,7 +17,7 @@ class AdminDashboardTest extends TestCase
     public function test_dashboard_summarises_patients_activity_risk_and_common_triggers(): void
     {
         $this->travelTo('2026-10-10 12:00:00');
-        $admin = User::factory()->create(['role' => User::ROLE_ADMIN]);
+        $admin = User::factory()->admin()->create();
         $alice = User::factory()->create(['name' => 'Alice Patient']);
         $bob = User::factory()->create(['name' => 'Bob Patient', 'created_at' => '2026-08-01']);
         User::factory()->create(['name' => 'Inactive Patient', 'is_active' => false, 'created_at' => '2026-08-01']);

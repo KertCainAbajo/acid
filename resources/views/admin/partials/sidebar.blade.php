@@ -3,6 +3,7 @@
     $groups = [
         'Monitor' => [
             ['route' => 'admin.dashboard', 'label' => 'Overview', 'hint' => 'Platform at a glance', 'keywords' => 'dashboard home stats charts', 'badge' => null, 'icon' => '<path d="M4 13h6V4H4v9Zm10 7h6v-9h-6v9ZM4 20h6v-3H4v3Zm10-12h6V4h-6v4Z"/>'],
+            ['route' => 'admin.security', 'label' => 'Security center', 'hint' => 'Threats, locks & 2FA', 'keywords' => 'security failed login locked two-factor 2fa suspicious ip attack', 'badge' => $sidebar['locked'] ? ['value' => $sidebar['locked'].' locked', 'tone' => 'alert'] : ($sidebar['failedToday'] ? ['value' => $sidebar['failedToday'], 'tone' => 'warn', 'title' => $sidebar['failedToday'].' failed sign-ins in 24h'] : null), 'icon' => '<path d="M12 3 4 6v6c0 5 3.4 8.4 8 9 4.6-.6 8-4 8-9V6l-8-3Z"/><path d="m9 12 2 2 4-4"/>'],
             ['route' => 'admin.activity', 'label' => 'System activity', 'hint' => 'Search the audit trail', 'keywords' => 'audit log events sign-ins history', 'badge' => $sidebar['eventsToday'] ? ['value' => $sidebar['eventsToday'].' today', 'tone' => 'live'] : null, 'icon' => '<path d="M3 12h4l2-5 4 10 2-5h6"/>'],
         ],
         'Manage' => [

@@ -99,8 +99,11 @@ class AdminPatientController extends Controller
         abort_unless($patient->isPatient(), 404);
         $request->validateWithBag('delete', [
             'confirm_email' => ['required', 'string', Rule::in([$patient->email])],
+            'current_password' => ['required', 'current_password'],
         ], [
             'confirm_email.in' => 'Type the patient\'s email address exactly to confirm.',
+            'current_password.required' => 'Enter your admin password to confirm this deletion.',
+            'current_password.current_password' => 'Your admin password is incorrect.',
         ]);
 
         $name = $patient->name;

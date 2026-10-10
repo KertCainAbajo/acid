@@ -14,7 +14,7 @@ class AdminAccountSettingsTest extends TestCase
 
     private function admin(): User
     {
-        return User::factory()->create(['role' => User::ROLE_ADMIN, 'email' => 'admin@example.com', 'password' => 'OldPassword1']);
+        return User::factory()->admin()->create(['email' => 'admin@example.com', 'password' => 'OldPassword1']);
     }
 
     public function test_admin_can_open_account_settings(): void

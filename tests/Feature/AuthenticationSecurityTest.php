@@ -8,6 +8,7 @@ use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Laravel\Sanctum\PersonalAccessToken;
 use Laravel\Sanctum\Sanctum;
 use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\InvalidStateException;
 use Laravel\Socialite\Two\User as SocialiteUser;
 use Tests\TestCase;
 
@@ -100,6 +101,35 @@ class AuthenticationSecurityTest extends TestCase
         $response = $this->actingAs($admin)->get('/food-log');
 
         $response->assertForbidden();
+    }
+
+    public function test_google_sign_in_always_starts_on_the_configured_app_address(): void
+    {
+        config(['app.url' => 'http://localhost:8000', 'services.google.client_id' => 'test-client']);
+
+        $response = $this->get('http://127.0.0.1:8000/auth/google/redirect');
+
+        $response->assertRedirect('http://localhost:8000/auth/google/redirect');
+    }
+
+    public function test_cancelled_google_sign_in_explains_what_happened(): void
+    {
+        $response = $this->get('/auth/google/callback?error=access_denied');
+
+        $response->assertRedirect(route('login'));
+        $response->assertSessionHasErrors(['email' => 'Google sign-in was cancelled.']);
+    }
+
+    public function test_expired_google_sign_in_session_explains_how_to_retry(): void
+    {
+        config(['app.url' => 'http://localhost:8000']);
+        Socialite::shouldReceive('driver->user')->andThrow(new InvalidStateException);
+
+        $response = $this->get('/auth/google/callback?code=abc&state=stale');
+
+        $response->assertRedirect(route('login'));
+        $response->assertSessionHasErrors(['email' => 'Your Google sign-in session expired. Please try again, and open the app at http://localhost:8000 so the sign-in can finish on the same address.']);
+        $this->assertGuest();
     }
 
     public function test_google_sign_in_rejects_an_unverified_email(): void

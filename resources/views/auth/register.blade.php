@@ -99,8 +99,8 @@
 
             <div class="lg-brand-foot">
                 <span><svg viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> Your data stays private</span>
-                <a href="#">Privacy Policy</a>
-                <a href="#">Terms of Service</a>
+                <a href="{{ route('privacy') }}">Privacy Policy</a>
+                <a href="{{ route('terms') }}">Terms of Service</a>
             </div>
         </section>
 
@@ -177,7 +177,7 @@
                         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
                         <span class="lg-spinner" aria-hidden="true"></span>
                     </button>
-                    <p class="rg-private"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> Your health logs are private to your account.</p>
+                    <p class="rg-private"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> By creating an account you agree to our <a class="lg-link" href="{{ route('terms') }}">Terms</a> and <a class="lg-link" href="{{ route('privacy') }}">Privacy Policy</a>.</p>
                 </form>
 
                 <div class="lg-trust">

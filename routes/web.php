@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', fn () => Auth::check() ? redirect()->route('dashboard') : view('auth.login'))->name('home');
 Route::view('/login', 'auth.login')->name('login');
 Route::view('/register', 'auth.register')->name('register');
+Route::view('/privacy', 'legal.privacy')->name('privacy');
+Route::view('/terms', 'legal.terms')->name('terms');
 Route::post('/login', [WebAuthController::class, 'login'])->middleware('throttle:login')->name('login.submit');
 Route::post('/register', [WebAuthController::class, 'register'])->middleware('throttle:register')->name('register.submit');
 Route::get('/auth/google/redirect', [WebAuthController::class, 'googleRedirect'])->name('google.redirect');

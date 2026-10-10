@@ -82,6 +82,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Contact Email
+    |--------------------------------------------------------------------------
+    |
+    | Shown on the Privacy Policy and Terms of Service pages for data and
+    | account requests. When empty, patients are told to contact an admin.
+    |
+    */
+
+    'contact_email' => env('CONTACT_EMAIL'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Locale Configuration
     |--------------------------------------------------------------------------
     |

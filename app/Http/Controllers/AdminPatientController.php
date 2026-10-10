@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\SystemLog;
 use App\Models\User;
 use App\Services\SystemLogService;
 use Illuminate\Database\Eloquent\Builder;
@@ -19,16 +20,37 @@ class AdminPatientController extends Controller
     public function index(Request $request): View
     {
         $filters = $this->filters($request);
+        $patients = $this->query($filters)->paginate(15)->withQueryString();
+        $patientQuery = fn (): Builder => User::query()->where('role', User::ROLE_PATIENT);
+        $weekStart = now()->startOfWeek();
+        $signupDates = $patientQuery()->where('created_at', '>=', $weekStart->copy()->subWeeks(11))->pluck('created_at');
 
         return view('admin.patients', [
             'title' => 'Patients',
             'filters' => $filters,
-            'patients' => $this->query($filters)->paginate(15)->withQueryString(),
+            'patients' => $patients,
             'totals' => [
-                'all' => User::where('role', User::ROLE_PATIENT)->count(),
-                'active' => User::where('role', User::ROLE_PATIENT)->where('is_active', true)->count(),
-                'inactive' => User::where('role', User::ROLE_PATIENT)->where('is_active', false)->count(),
+                'all' => $patientQuery()->count(),
+                'active' => $patientQuery()->where('is_active', true)->count(),
+                'inactive' => $patientQuery()->where('is_active', false)->count(),
+                'dormant' => $this->dormant($patientQuery())->count(),
+                'newThisWeek' => $patientQuery()->where('created_at', '>=', now()->subDays(7))->count(),
             ],
+            'signupsByWeek' => collect(range(11, 0))->map(function (int $weeksAgo) use ($weekStart, $signupDates): array {
+                $start = $weekStart->copy()->subWeeks($weeksAgo);
+
+                return [
+                    'label' => $start->format('M j'),
+                    'count' => $signupDates->filter(fn ($date): bool => $date->between($start, $start->copy()->endOfWeek()))->count(),
+                ];
+            })->all(),
+            'recentEvents' => SystemLog::query()
+                ->whereIn('actor_id', $patients->pluck('id'))
+                ->where('created_at', '>=', now()->subDays(30))
+                ->latest('id')
+                ->get(['actor_id', 'action', 'metadata', 'ip_address', 'created_at'])
+                ->groupBy('actor_id')
+                ->map(fn ($events) => $events->take(6)->values()),
         ]);
     }
 
@@ -96,7 +118,7 @@ class AdminPatientController extends Controller
     {
         $validated = $request->validate([
             'q' => ['nullable', 'string', 'max:100'],
-            'status' => ['nullable', Rule::in(['all', 'active', 'inactive'])],
+            'status' => ['nullable', Rule::in(['all', 'active', 'inactive', 'dormant'])],
             'sort' => ['nullable', Rule::in(['newest', 'oldest', 'name', 'most-active'])],
         ]);
 
@@ -120,11 +142,24 @@ class AdminPatientController extends Controller
             ->when($filters['q'] !== '', fn (Builder $query) => $query->where(fn (Builder $search) => $search
                 ->where('name', 'like', "%{$filters['q']}%")
                 ->orWhere('email', 'like', "%{$filters['q']}%")))
-            ->when($filters['status'] !== 'all', fn (Builder $query) => $query->where('is_active', $filters['status'] === 'active'))
+            ->when(in_array($filters['status'], ['active', 'inactive'], true), fn (Builder $query) => $query->where('is_active', $filters['status'] === 'active'))
+            ->when($filters['status'] === 'dormant', fn (Builder $query) => $this->dormant($query))
             ->when($filters['sort'] === 'newest', fn (Builder $query) => $query->latest())
             ->when($filters['sort'] === 'oldest', fn (Builder $query) => $query->oldest())
             ->when($filters['sort'] === 'name', fn (Builder $query) => $query->orderBy('name'))
             ->when($filters['sort'] === 'most-active', fn (Builder $query) => $query->orderByRaw('(food_logs_count + symptom_logs_count + sleep_logs_count) desc'));
+    }
+
+    /**
+     * Active patients with no recorded activity in the last 14 days.
+     *
+     * @param  Builder<User>  $query
+     * @return Builder<User>
+     */
+    private function dormant(Builder $query): Builder
+    {
+        return $query->where('is_active', true)
+            ->whereDoesntHave('systemLogs', fn (Builder $logs) => $logs->where('created_at', '>=', now()->subDays(14)));
     }
 
     private function signOutEverywhere(User $patient): void

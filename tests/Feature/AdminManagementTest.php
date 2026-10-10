@@ -29,6 +29,21 @@ class AdminManagementTest extends TestCase
         $response->assertOk()->assertSee('Alice Active')->assertDontSee('Alan Inactive')->assertDontSee('Bob Active');
     }
 
+    public function test_dormant_segment_lists_active_patients_with_no_activity_for_fourteen_days(): void
+    {
+        $this->travelTo('2026-10-10 12:00:00');
+        $recent = User::factory()->create(['name' => 'Recently Active']);
+        $dormant = User::factory()->create(['name' => 'Gone Quiet']);
+        User::factory()->create(['name' => 'Deactivated Quiet', 'is_active' => false]);
+        SystemLog::create(['actor_id' => $recent->id, 'action' => 'user_logged_in'])->forceFill(['created_at' => '2026-10-08 09:00:00'])->save();
+        SystemLog::create(['actor_id' => $dormant->id, 'action' => 'user_logged_in'])->forceFill(['created_at' => '2026-09-01 09:00:00'])->save();
+
+        $response = $this->actingAs($this->admin())->get('/admin/patients?status=dormant');
+
+        $response->assertSee('Gone Quiet')->assertDontSee('Recently Active')->assertDontSee('Deactivated Quiet');
+        $response->assertViewHas('totals', fn (array $totals): bool => $totals['dormant'] === 1 && $totals['all'] === 3);
+    }
+
     public function test_deactivating_a_patient_blocks_them_and_revokes_their_tokens(): void
     {
         $admin = $this->admin();
@@ -124,6 +139,26 @@ class AdminManagementTest extends TestCase
         $csv = $this->actingAs($admin)->get('/admin/activity/export?group=sign-ins')->streamedContent();
         $this->assertStringContainsString('user_logged_in,"Searchable Person"', $csv);
         $this->assertStringNotContainsString('food_category_created', $csv);
+    }
+
+    public function test_activity_page_summarises_the_last_seven_days_by_category(): void
+    {
+        $this->travelTo('2026-10-10 12:00:00');
+        $admin = $this->admin();
+        $patient = User::factory()->create();
+        SystemLog::create(['actor_id' => $patient->id, 'action' => 'user_logged_in', 'ip_address' => '10.0.0.1', 'metadata' => ['channel' => 'google']]);
+        SystemLog::create(['actor_id' => $patient->id, 'action' => 'user_registered', 'ip_address' => '10.0.0.2']);
+        SystemLog::create(['actor_id' => $patient->id, 'action' => 'symptom_log_created', 'ip_address' => '10.0.0.1']);
+        SystemLog::create(['actor_id' => $admin->id, 'action' => 'patient_deactivated', 'ip_address' => '10.0.0.3']);
+        $old = SystemLog::create(['actor_id' => $patient->id, 'action' => 'user_logged_in']);
+        $old->forceFill(['created_at' => '2026-09-01 10:00:00'])->save();
+
+        $response = $this->actingAs($admin)->get('/admin/activity');
+
+        $response->assertViewHas('groupCounts', ['sign-ins' => 2, 'entries' => 1, 'accounts' => 1, 'guidance' => 0]);
+        $response->assertViewHas('security', ['signInsToday' => 1, 'newAccounts' => 1, 'accountChanges' => 1, 'uniqueIps' => 3]);
+        $response->assertViewHas('topActors', fn ($actors): bool => $actors->first()->actor_id === $patient->id && (int) $actors->first()->total === 3);
+        $response->assertSee('Google');
     }
 
     public function test_patients_cannot_reach_admin_management_pages(): void

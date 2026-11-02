@@ -13,6 +13,7 @@ php artisan view:cache
 php artisan event:cache
 
 # Safe on every deploy: migrations only add what is missing, and the seeders never overwrite existing data.
+php artisan db:ensure-schema
 php artisan migrate --force
 php artisan db:seed --force
 

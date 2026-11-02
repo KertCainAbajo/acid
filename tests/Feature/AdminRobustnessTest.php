@@ -109,7 +109,7 @@ class AdminRobustnessTest extends TestCase
     public function test_patient_search_ignores_letter_case_and_most_active_sort_ranks_by_total_entries(): void
     {
         $admin = User::factory()->admin()->create();
-        $quiet = User::factory()->create(['name' => 'Quiet Patient']);
+        User::factory()->create(['name' => 'Quiet Patient']);
         $busy = User::factory()->create(['name' => 'Maria Santos']);
         foreach (range(1, 3) as $hour) {
             FoodLog::create(['user_id' => $busy->id, 'food_name' => 'Rice', 'category' => 'acidic', 'time' => now()->subHours($hour)]);
@@ -134,6 +134,11 @@ class AdminRobustnessTest extends TestCase
         $this->assertSame('safe', $coffee->fresh()->type);
         $this->assertModelMissing($removed);
         $this->assertSame(1, User::where('role', User::ROLE_ADMIN)->count());
+    }
+
+    public function test_schema_setup_command_is_a_safe_no_op_outside_postgres(): void
+    {
+        $this->artisan('db:ensure-schema')->expectsOutput('Not a PostgreSQL connection; nothing to do.')->assertSuccessful();
     }
 
     public function test_events_without_a_person_name_the_account_they_were_about(): void

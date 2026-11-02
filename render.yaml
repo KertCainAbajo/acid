@@ -25,10 +25,21 @@ services:
       # Supabase PostgreSQL: use the "Session pooler" connection string (Render cannot reach Supabase's IPv6-only direct host).
       - key: DB_CONNECTION
         value: pgsql
-      - key: DB_URL
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_DATABASE
+        value: postgres
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
         sync: false
       - key: DB_SSLMODE
         value: require
+      # Keeps every RefluxCare table in its own schema, so it can share a Supabase project with another app.
+      - key: DB_SEARCH_PATH
+        value: refluxcare
 
       - key: SESSION_DRIVER
         value: database

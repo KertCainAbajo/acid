@@ -24,6 +24,18 @@ class PatientSectionsTest extends TestCase
         $this->assertSame(20, $patient->insights()->latest('id')->value('risk_score'));
     }
 
+    public function test_dashboard_replaces_a_stale_insight_with_a_fresh_analysis(): void
+    {
+        $patient = User::factory()->create();
+        $patient->insights()->create(['risk_level' => 'high', 'risk_score' => 90, 'insight_text' => 'Old weekly summary', 'generated_at' => now()->subDays(30)]);
+
+        $response = $this->actingAs($patient)->get('/dashboard');
+
+        $response->assertOk()->assertDontSee('Old weekly summary');
+        $this->assertSame(2, $patient->insights()->count());
+        $this->assertSame('low', $patient->insights()->latest('id')->value('risk_level'));
+    }
+
     public function test_insights_page_shows_the_food_trigger_analysis(): void
     {
         $patient = User::factory()->create();

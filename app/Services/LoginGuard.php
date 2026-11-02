@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\SystemLog;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 /**
  * Layer 1: account lockout after repeated failed sign-ins, plus security event logging for every sign-in attempt.
@@ -17,7 +19,23 @@ class LoginGuard
     /** How long a locked account stays locked. */
     public const LOCK_MINUTES = 15;
 
+    private static ?string $timingHash = null;
+
     public function __construct(private readonly SystemLogService $systemLogService) {}
+
+    /**
+     * Check a password in constant work: unknown emails still pay for a hash check, so response time does not reveal which emails have accounts.
+     */
+    public function passwordMatches(?User $user, string $password): bool
+    {
+        if (! $user || ! $user->password) {
+            Hash::check($password, self::$timingHash ??= Hash::make(Str::random(32)));
+
+            return false;
+        }
+
+        return Hash::check($password, $user->password);
+    }
 
     /**
      * The message to show when the account is temporarily locked, or null when sign-in may continue.

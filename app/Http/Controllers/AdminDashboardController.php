@@ -89,7 +89,7 @@ class AdminDashboardController extends Controller
                 'none' => max(0, $patientCount - $latestInsights->count()),
             ],
             'recentPatients' => $recentPatients,
-            'recentActivity' => SystemLog::with('actor:id,name,role')->latest()->limit(8)->get(['id', 'actor_id', 'action', 'created_at']),
+            'recentActivity' => SystemLog::with(['actor:id,name,role', 'target'])->latest()->limit(8)->get(['id', 'actor_id', 'action', 'target_type', 'target_id', 'created_at']),
             'commonTriggers' => $monthFoods->groupBy('user_id')
                 ->flatMap(fn (Collection $foods, int $userId): Collection => $insightService->findTriggers($foods, $monthSymptoms->where('user_id', $userId))
                     ->map(fn (array $trigger): array => [...$trigger, 'user_id' => $userId]))

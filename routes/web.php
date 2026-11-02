@@ -9,6 +9,7 @@ use App\Http\Controllers\AdminSecurityController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LogPageController;
 use App\Http\Controllers\LogSearchController;
+use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\PatientSectionController;
 use App\Http\Controllers\SecurityController;
 use App\Http\Controllers\WebAuthController;
@@ -26,6 +27,12 @@ Route::get('/auth/google/redirect', [WebAuthController::class, 'googleRedirect']
 Route::get('/auth/google/callback', [WebAuthController::class, 'googleCallback'])->name('google.callback');
 Route::get('/two-factor-challenge', [WebAuthController::class, 'showTwoFactorChallenge'])->name('two-factor.challenge');
 Route::post('/two-factor-challenge', [WebAuthController::class, 'verifyTwoFactorChallenge'])->middleware('throttle:6,1')->name('two-factor.verify');
+Route::middleware('guest')->group(function () {
+    Route::get('/forgot-password', [PasswordResetController::class, 'create'])->name('password.request');
+    Route::post('/forgot-password', [PasswordResetController::class, 'store'])->middleware('throttle:5,1')->name('password.email');
+    Route::get('/reset-password/{token}', [PasswordResetController::class, 'edit'])->name('password.reset');
+    Route::post('/reset-password', [PasswordResetController::class, 'update'])->middleware('throttle:6,1')->name('password.update');
+});
 
 Route::middleware(['auth', 'active', 'secure.session'])->group(function () {
     Route::prefix('security')->name('security.')->middleware('throttle:12,1')->group(function () {

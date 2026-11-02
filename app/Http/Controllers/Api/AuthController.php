@@ -9,7 +9,6 @@ use App\Services\SystemLogService;
 use App\Services\TwoFactorService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 
 class AuthController extends Controller
@@ -55,7 +54,7 @@ class AuthController extends Controller
             return response()->json(['message' => $lockMessage], 423);
         }
 
-        if (! $user || ! Hash::check($data['password'], $user->password)) {
+        if (! $this->loginGuard->passwordMatches($user, $data['password'])) {
             $this->loginGuard->recordFailure($request, $user, $data['email']);
 
             return response()->json(['message' => 'The provided credentials are incorrect.'], 422);

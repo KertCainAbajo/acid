@@ -43,7 +43,7 @@ class WebAuthController extends Controller
             return $failed($lockMessage);
         }
 
-        if (! $user || ! Hash::check($credentials['password'], $user->password)) {
+        if (! $this->loginGuard->passwordMatches($user, $credentials['password'])) {
             $this->loginGuard->recordFailure($request, $user, $credentials['email']);
 
             return $failed($this->loginGuard->lockMessage($user?->fresh()) ?? 'Those credentials do not match our records.');

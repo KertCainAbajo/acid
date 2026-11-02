@@ -42,9 +42,9 @@ class LogSearchController extends Controller
     {
         return $foodLogs
             ->where(function (Builder $query) use ($searchTerm): void {
-                $query->where('food_name', 'like', $searchTerm)
-                    ->orWhere('category', 'like', $searchTerm)
-                    ->orWhere('notes', 'like', $searchTerm);
+                $query->whereLike('food_name', $searchTerm)
+                    ->orWhereLike('category', $searchTerm)
+                    ->orWhereLike('notes', $searchTerm);
             })
             ->latest('time')
             ->limit(12)
@@ -62,8 +62,8 @@ class LogSearchController extends Controller
     {
         return $symptomLogs
             ->where(function (Builder $query) use ($searchTerm): void {
-                $query->where('symptom_type', 'like', $searchTerm)
-                    ->orWhere('notes', 'like', $searchTerm);
+                $query->whereLike('symptom_type', $searchTerm)
+                    ->orWhereLike('notes', $searchTerm);
             })
             ->latest('time')
             ->limit(12)
@@ -80,7 +80,7 @@ class LogSearchController extends Controller
     private function searchSleepLogs(HasMany $sleepLogs, string $searchTerm): Collection
     {
         return $sleepLogs
-            ->where('notes', 'like', $searchTerm)
+            ->whereLike('notes', $searchTerm)
             ->latest('logged_on')
             ->limit(12)
             ->get()

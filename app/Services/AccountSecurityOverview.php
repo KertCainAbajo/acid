@@ -21,7 +21,8 @@ class AccountSecurityOverview
     public const HISTORY_ACTIONS = [
         'user_logged_in', 'user_logged_out', 'login_failed', 'new_device_sign_in', 'account_locked', 'account_unlocked',
         'session_timed_out', 'session_blocked', 'sessions_revoked', 'two_factor_enabled', 'two_factor_disabled',
-        'recovery_codes_regenerated', 'recovery_code_used', 'account_password_changed', 'user_registered',
+        'recovery_codes_regenerated', 'recovery_code_used', 'account_password_changed', 'password_reset_requested',
+        'password_reset_completed', 'user_registered',
     ];
 
     public function __construct(private readonly TwoFactorService $twoFactor) {}

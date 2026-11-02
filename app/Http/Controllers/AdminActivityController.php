@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\FoodCategory;
 use App\Models\SystemLog;
+use App\Models\User;
+use App\Support\CsvRow;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -21,7 +24,7 @@ class AdminActivityController extends Controller
         'entries' => ['label' => 'Patient entries', 'prefixes' => ['food_log_', 'symptom_log_', 'sleep_log_']],
         'accounts' => ['label' => 'Account changes', 'prefixes' => ['patient_', 'account_', 'user_account_']],
         'guidance' => ['label' => 'Food guidance', 'prefixes' => ['food_category_']],
-        'security' => ['label' => 'Security', 'prefixes' => ['login_failed', 'account_locked', 'account_unlocked', 'new_device_', 'session_', 'sessions_', 'two_factor_', 'recovery_code']],
+        'security' => ['label' => 'Security', 'prefixes' => ['login_failed', 'account_locked', 'account_unlocked', 'new_device_', 'session_', 'sessions_', 'two_factor_', 'recovery_code', 'password_reset_']],
     ];
 
     public function index(Request $request): View
@@ -59,7 +62,7 @@ class AdminActivityController extends Controller
             'security' => [
                 'signInsToday' => SystemLog::where('action', 'user_logged_in')->whereDate('created_at', today())->count(),
                 'newAccounts' => SystemLog::where('action', 'user_registered')->where('created_at', '>=', $weekAgo)->count(),
-                'accountChanges' => SystemLog::where(fn (Builder $query) => $query->where('action', 'like', 'account_%')->orWhere('action', 'like', 'patient_%'))->where('created_at', '>=', $weekAgo)->count(),
+                'accountChanges' => SystemLog::query()->where(fn (Builder $query) => $query->where('action', 'like', 'account_%')->orWhere('action', 'like', 'patient_%'))->where('created_at', '>=', $weekAgo)->count(),
                 'uniqueIps' => SystemLog::where('created_at', '>=', $weekAgo)->whereNotNull('ip_address')->distinct()->count('ip_address'),
             ],
         ]);
@@ -73,14 +76,19 @@ class AdminActivityController extends Controller
             $output = fopen('php://output', 'w');
             fputcsv($output, ['Time', 'Action', 'Person', 'Email', 'Target', 'IP address']);
             foreach ($activities as $activity) {
-                fputcsv($output, [
+                fputcsv($output, CsvRow::safe([
                     $activity->created_at->toDateTimeString(),
                     $activity->action,
                     $activity->actor?->name ?? 'System',
                     $activity->actor?->email ?? '',
-                    $activity->target_type ? class_basename($activity->target_type).' #'.$activity->target_id : '',
+                    match (true) {
+                        $activity->target instanceof User => "{$activity->target->name} ({$activity->target->email})",
+                        $activity->target instanceof FoodCategory => "Food guidance: {$activity->target->name}",
+                        (bool) $activity->target_type => class_basename($activity->target_type).' #'.$activity->target_id,
+                        default => '',
+                    },
                     $activity->ip_address,
-                ]);
+                ]));
             }
             fclose($output);
         }, 'refluxcare-activity-'.now()->format('Y-m-d').'.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
@@ -113,15 +121,15 @@ class AdminActivityController extends Controller
     private function query(array $filters): Builder
     {
         return SystemLog::query()
-            ->with('actor:id,name,email,role')
+            ->with(['actor:id,name,email,role', 'target'])
             ->when($filters['group'] !== 'all', fn (Builder $query) => $query->where(function (Builder $actions) use ($filters): void {
                 foreach (self::GROUPS[$filters['group']]['prefixes'] as $prefix) {
                     $actions->orWhere('action', 'like', $prefix.'%');
                 }
             }))
             ->when($filters['q'] !== '', fn (Builder $query) => $query->where(fn (Builder $search) => $search
-                ->where('action', 'like', '%'.str_replace(' ', '_', $filters['q']).'%')
-                ->orWhereHas('actor', fn (Builder $actor) => $actor->where('name', 'like', "%{$filters['q']}%")->orWhere('email', 'like', "%{$filters['q']}%"))))
+                ->whereLike('action', '%'.str_replace(' ', '_', $filters['q']).'%')
+                ->orWhereHas('actor', fn (Builder $actor) => $actor->whereLike('name', "%{$filters['q']}%")->orWhereLike('email', "%{$filters['q']}%"))))
             ->when($filters['from'], fn (Builder $query, string $from) => $query->whereDate('created_at', '>=', $from))
             ->when($filters['to'], fn (Builder $query, string $to) => $query->whereDate('created_at', '<=', $to))
             ->latest('id');

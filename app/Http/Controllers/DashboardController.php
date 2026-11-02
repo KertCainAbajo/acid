@@ -12,6 +12,9 @@ use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
+    /** Insights older than this are regenerated so the dashboard never shows a stale analysis. */
+    private const INSIGHT_MAX_AGE_HOURS = 6;
+
     public function __invoke(InsightService $insightService): RedirectResponse|View
     {
         $user = request()->user();
@@ -21,7 +24,10 @@ class DashboardController extends Controller
         }
 
         $today = CarbonImmutable::today();
-        $latestInsight = $user->insights()->latest('generated_at')->first() ?? $insightService->generate($user);
+        $latestInsight = $user->insights()->latest('generated_at')->first();
+        if (! $latestInsight || $latestInsight->generated_at->lt(now()->subHours(self::INSIGHT_MAX_AGE_HOURS))) {
+            $latestInsight = $insightService->generate($user);
+        }
         $foods = $user->foodLogs()->latest('time')->limit(8)->get();
         $symptoms = $user->symptomLogs()->latest('time')->limit(8)->get();
         $sleep = $user->sleepLogs()->latest('logged_on')->first();

@@ -23,6 +23,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'secure.session' => EnsureSecureSession::class,
         ]);
         $middleware->append(AddSecurityHeaders::class);
+
+        // Behind a hosting proxy (e.g. Render) set TRUSTED_PROXIES=* so HTTPS, client IPs and secure cookies are detected.
+        if ($trustedProxies = env('TRUSTED_PROXIES')) {
+            $middleware->trustProxies(at: $trustedProxies === '*' ? '*' : explode(',', $trustedProxies));
+        }
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

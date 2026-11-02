@@ -209,7 +209,12 @@
                                 'person' => $activity->actor?->name,
                                 'email' => $activity->actor?->email,
                                 'role' => $activity->actor?->role,
-                                'target' => $activity->target_type ? class_basename($activity->target_type).' #'.$activity->target_id : null,
+                                'target' => match (true) {
+                                    $activity->target instanceof \App\Models\User => $activity->target->name.' ('.$activity->target->email.')',
+                                    $activity->target instanceof \App\Models\FoodCategory => 'Food guidance: '.$activity->target->name,
+                                    (bool) $activity->target_type => class_basename($activity->target_type).' #'.$activity->target_id,
+                                    default => null,
+                                },
                                 'ip' => $activity->ip_address,
                                 'metadata' => $activity->metadata,
                                 'filterUrl' => $activity->actor ? route('admin.activity', ['q' => $activity->actor->email]) : null,
@@ -222,7 +227,7 @@
                                         @if ($channel === 'google')<span class="ac-tag is-google">Google</span>@elseif ($channel)<span class="ac-tag">{{ ucfirst($channel) }}</span>@endif
                                         @foreach (array_slice($changes, 0, 3) as $field)<span class="ac-tag">{{ str_replace('_', ' ', $field) }} changed</span>@endforeach
                                     </span>
-                                    <span class="ac-event-sub">{{ $activity->actor?->name ?? 'System or deleted account' }}{{ $activity->actor ? ' · '.$activity->actor->email : '' }}{{ $activity->ip_address ? ' · '.$activity->ip_address : '' }}</span>
+                                    <span class="ac-event-sub">{{ $activity->actor?->name ?? ($activity->target instanceof \App\Models\User ? 'Account: '.$activity->target->name : 'System or deleted account') }}{{ $activity->actor ? ' · '.$activity->actor->email : ($activity->target instanceof \App\Models\User ? ' · '.$activity->target->email : '') }}{{ $activity->ip_address ? ' · '.$activity->ip_address : '' }}</span>
                                 </span>
                                 <span class="ac-time"><b>{{ $activity->created_at->format('g:i A') }}</b><small>{{ $activity->created_at->diffForHumans(null, true) }} ago</small></span>
                             </button>

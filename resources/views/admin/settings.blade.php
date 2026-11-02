@@ -110,8 +110,8 @@
     .st-preview-meta { display:grid; gap:7px; margin-top:14px; padding-top:14px; border-top:1px dashed #dbe5e1; text-align:left; }
     .st-preview-meta div { display:flex; justify-content:space-between; gap:8px; color:var(--muted); font-size:12px; }
     .st-preview-meta b { color:var(--ink); font-weight:700; }
-    .st-dirty { display:none; align-items:center; gap:6px; margin-top:12px; padding:5px 10px; border-radius:999px; color:#92400e; background:#fef3c7; font-size:11.5px; font-weight:700; }
-    .st-dirty.is-visible { display:inline-flex; }
+    .st-preview-body .st-dirty { display:none; align-items:center; gap:6px; margin:12px 0 0; padding:5px 10px; border-radius:999px; color:#92400e; background:#fef3c7; font-size:11.5px; font-weight:700; }
+    .st-preview-body .st-dirty.is-visible { display:inline-flex; }
     .st-dirty i { width:6px; height:6px; border-radius:50%; background:#f59e0b; }
     .st-password { display:grid; grid-template-columns:minmax(0,1fr) 250px; gap:22px; align-items:start; }
     .st-strength { margin-top:10px; }

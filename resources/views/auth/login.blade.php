@@ -64,6 +64,7 @@
     /* ---------- Form side ---------- */
     .lx .lg-panel { background:radial-gradient(70% 50% at 100% 0%,#ecfdf5 0%,transparent 70%); border-radius:24px; }
     .lx .lg-form { width:min(100%,410px); }
+    .lg-alert.is-success { border-color:#a7f3d0; color:#065f46; background:#ecfdf5; animation:lgRise .4s ease both; }
     .lx-greet { display:inline-flex; align-items:center; gap:8px; margin-bottom:16px; padding:5px 12px 5px 6px; border:1px solid #d1fae5; border-radius:999px; color:#065f46; background:#f0fdf4; font-size:12px; font-weight:700; }
     .lx-greet i { width:22px; height:22px; display:grid; place-items:center; border-radius:50%; color:#fff; background:linear-gradient(145deg,#34d399,#059669); font-style:normal; font-size:12px; }
     .lx .lg-form h2 { font-size:clamp(30px,2.6vw,38px); letter-spacing:-.045em; }
@@ -180,6 +181,13 @@
                 <h2>Welcome back<span>.</span></h2>
                 <p class="lg-intro">Sign in to continue tracking your health and reviewing your patterns.</p>
 
+                @if (session('status'))
+                    <div class="lg-alert is-success" role="status">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg>
+                        <span>{{ session('status') }}</span>
+                    </div>
+                @endif
+
                 @if ($errors->any())
                     <div class="lg-alert" role="alert">
                         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01"/></svg>
@@ -212,7 +220,7 @@
 
                     <div class="lg-options">
                         <label class="lg-check"><input type="checkbox" name="remember" @checked(old('remember'))><span class="lg-check-box"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></svg></span> Keep me signed in</label>
-                        <a class="lg-link" href="#">Forgot password?</a>
+                        <a class="lg-link" href="{{ route('password.request') }}">Forgot password?</a>
                     </div>
 
                     <button class="lg-submit" id="login-submit" type="submit">

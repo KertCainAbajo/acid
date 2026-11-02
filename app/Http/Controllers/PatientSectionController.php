@@ -9,6 +9,7 @@ use App\Models\SymptomLog;
 use App\Models\User;
 use App\Services\InsightService;
 use App\Services\PatternAnalysisService;
+use App\Support\CsvRow;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
@@ -92,7 +93,7 @@ class PatientSectionController extends Controller
             $output = fopen('php://output', 'w');
             fputcsv($output, ['Type', 'Date', 'Time', 'Entry', 'Details', 'Notes']);
             foreach ($rows as $row) {
-                fputcsv($output, [$row['kind'], $row['at']->toDateString(), $row['kind'] === 'Sleep' ? '' : $row['at']->format('H:i'), $row['title'], $row['detail'], $row['notes'] ?? '']);
+                fputcsv($output, CsvRow::safe([$row['kind'], $row['at']->toDateString(), $row['kind'] === 'Sleep' ? '' : $row['at']->format('H:i'), $row['title'], $row['detail'], $row['notes'] ?? '']));
             }
             fclose($output);
         }, 'refluxcare-history-'.now()->format('Y-m-d').'.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);

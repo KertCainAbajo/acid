@@ -31,6 +31,8 @@ class ActivityPresenter
             $action === 'two_factor_disabled' => ['Two-factor turned off', 'amber', $shield],
             $action === 'recovery_code_used' => ['Recovery code used', 'amber', '<path d="M21 2l-2 2m-7.6 7.6a5.5 5.5 0 1 1-7.8 7.8 5.5 5.5 0 0 1 7.8-7.8Zm0 0L15.5 7.5"/>'],
             $action === 'recovery_codes_regenerated' => ['Recovery codes renewed', 'amber', '<path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/>'],
+            $action === 'password_reset_requested' => ['Password reset requested', 'amber', '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>'],
+            $action === 'password_reset_completed' => ['Password reset by email', 'amber', '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>'],
             $action === 'user_logged_in' => ['Signed in', 'green', '<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/>'],
             $action === 'user_logged_out' => ['Signed out', 'slate', '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>'],
             $action === 'user_registered' => ['New account', 'sky', '<circle cx="9" cy="8" r="4"/><path d="M3 21a6 6 0 0 1 12 0M19 8v6M16 11h6"/>'],

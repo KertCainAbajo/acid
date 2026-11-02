@@ -14,6 +14,7 @@ use App\Services\InsightService;
 use App\Services\SystemLogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class AdminController extends Controller
 {
@@ -92,10 +93,16 @@ class AdminController extends Controller
         $data = $request->validate([
             'is_active' => ['sometimes', 'boolean'],
             'role' => ['sometimes', 'string', 'in:patient,admin'],
+            'current_password' => [Rule::requiredIf($request->has('role')), 'string', 'current_password:sanctum'],
         ]);
+        unset($data['current_password']);
 
         if ($user->is($request->user()) && (($data['is_active'] ?? true) === false || ($data['role'] ?? $user->role) !== User::ROLE_ADMIN)) {
             return response()->json(['message' => 'You cannot deactivate or demote your own admin account.'], 422);
+        }
+
+        if ($user->isAdmin() && ! $user->is($request->user())) {
+            return response()->json(['message' => 'Other administrator accounts cannot be changed through the API.'], 403);
         }
 
         $user->update($data);
@@ -112,6 +119,13 @@ class AdminController extends Controller
         if ($user->is($request->user())) {
             return response()->json(['message' => 'You cannot delete your own admin account.'], 422);
         }
+
+        if ($user->isAdmin()) {
+            return response()->json(['message' => 'Administrator accounts cannot be deleted through the API.'], 403);
+        }
+
+        // Deleting a patient erases their health records, so a stolen token alone must not be enough.
+        $request->validate(['current_password' => ['required', 'string', 'current_password:sanctum']]);
 
         $user->delete();
         $this->systemLogService->record($request, 'user_account_deleted', null, ['deleted_user_id' => $user->id]);

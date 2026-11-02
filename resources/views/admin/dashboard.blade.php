@@ -3,7 +3,8 @@
 @section('admin-content')
 @php
     $admin = auth()->user();
-    $hour = (int) now()->format('G');
+    $localNow = now(config('app.patient_timezone', config('app.timezone')));
+    $hour = (int) $localNow->format('G');
     $greeting = $hour < 12 ? 'Good morning' : ($hour < 18 ? 'Good afternoon' : 'Good evening');
     $totalEntries = $foodLogCount + $symptomLogCount + $sleepLogCount;
     $chartMax = max(1, collect($activity)->max(fn (array $day): int => $day['foods'] + $day['symptoms'] + $day['sleep']));
@@ -116,7 +117,7 @@
 <div class="lp">
     <section class="lp-hero ad-hero">
         <div>
-            <span class="lp-crumb">Admin console · {{ now()->format('l, F j') }}</span>
+            <span class="lp-crumb">Admin console · {{ $localNow->format('l, F j') }}</span>
             <h1>{{ $greeting }}, <span>{{ explode(' ', trim($admin->name))[0] }}</span></h1>
             <p>Here is how RefluxCare is being used. {{ $activeThisWeek }} of {{ $patientCount }} patient{{ $patientCount === 1 ? '' : 's' }} logged something in the last 7 days.</p>
             <div class="ad-actions">
@@ -244,7 +245,7 @@
                         @php(['label' => $label, 'tone' => $tone, 'icon' => $icon] = \App\Support\ActivityPresenter::describe($event->action))
                         <div class="ad-feed-row lp-tone-{{ $tone }}">
                             <span class="lp-badge-icon"><svg class="lp-svg" style="width:16px;height:16px" viewBox="0 0 24 24" aria-hidden="true">{!! $icon !!}</svg></span>
-                            <div><strong>{{ $label }}</strong><small>{{ $event->actor?->name ?? 'System' }}{{ $event->actor?->role === 'admin' ? ' · admin' : '' }}</small></div>
+                            <div><strong>{{ $label }}</strong><small>{{ $event->actor?->name ?? ($event->target instanceof \App\Models\User ? $event->target->name.' · account' : 'System') }}{{ $event->actor?->role === 'admin' ? ' · admin' : '' }}</small></div>
                             <time datetime="{{ $event->created_at->toIso8601String() }}" title="{{ $event->created_at->format('M j, Y g:i A') }}">{{ $event->created_at->diffForHumans(null, true) }} ago</time>
                         </div>
                     @endforeach

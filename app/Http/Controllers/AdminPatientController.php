@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\SystemLog;
 use App\Models\User;
 use App\Services\SystemLogService;
+use App\Support\CsvRow;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -62,7 +63,7 @@ class AdminPatientController extends Controller
             $output = fopen('php://output', 'w');
             fputcsv($output, ['Name', 'Email', 'Status', 'Joined', 'Food entries', 'Symptom entries', 'Sleep entries', 'Last activity']);
             foreach ($patients as $patient) {
-                fputcsv($output, [
+                fputcsv($output, CsvRow::safe([
                     $patient->name,
                     $patient->email,
                     $patient->is_active ? 'Active' : 'Inactive',
@@ -71,7 +72,7 @@ class AdminPatientController extends Controller
                     $patient->symptom_logs_count,
                     $patient->sleep_logs_count,
                     $patient->last_active_at ?? '',
-                ]);
+                ]));
             }
             fclose($output);
         }, 'refluxcare-patients-'.now()->format('Y-m-d').'.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
@@ -143,14 +144,15 @@ class AdminPatientController extends Controller
             ->withCount(['foodLogs', 'symptomLogs', 'sleepLogs'])
             ->addSelect(['last_active_at' => DB::table('system_logs')->selectRaw('MAX(created_at)')->whereColumn('actor_id', 'users.id')])
             ->when($filters['q'] !== '', fn (Builder $query) => $query->where(fn (Builder $search) => $search
-                ->where('name', 'like', "%{$filters['q']}%")
-                ->orWhere('email', 'like', "%{$filters['q']}%")))
+                ->whereLike('name', "%{$filters['q']}%")
+                ->orWhereLike('email', "%{$filters['q']}%")))
             ->when(in_array($filters['status'], ['active', 'inactive'], true), fn (Builder $query) => $query->where('is_active', $filters['status'] === 'active'))
             ->when($filters['status'] === 'dormant', fn (Builder $query) => $this->dormant($query))
             ->when($filters['sort'] === 'newest', fn (Builder $query) => $query->latest())
             ->when($filters['sort'] === 'oldest', fn (Builder $query) => $query->oldest())
             ->when($filters['sort'] === 'name', fn (Builder $query) => $query->orderBy('name'))
-            ->when($filters['sort'] === 'most-active', fn (Builder $query) => $query->orderByRaw('(food_logs_count + symptom_logs_count + sleep_logs_count) desc'));
+            // PostgreSQL cannot do arithmetic on select aliases in ORDER BY, so total the entries with subqueries that every database accepts.
+            ->when($filters['sort'] === 'most-active', fn (Builder $query) => $query->orderByRaw('((select count(*) from food_logs where food_logs.user_id = users.id) + (select count(*) from symptom_logs where symptom_logs.user_id = users.id) + (select count(*) from sleep_logs where sleep_logs.user_id = users.id)) desc'));
     }
 
     /**

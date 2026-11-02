@@ -4,7 +4,8 @@
 FROM node:22-alpine AS assets
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci
+# "npm install" (not "npm ci") because npm leaves an optional dev helper's dependency out of the lockfile; versions still come from the lockfile.
+RUN npm install --no-audit --no-fund
 COPY . .
 RUN npm run build
 
